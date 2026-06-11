@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="modern">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>디토 (Ditto) — 세대 공감 오디오 플레이어</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app" class="phone">
+
+    <!-- ===== Header ===== -->
+    <header class="header">
+      <button id="btn-back" class="icon-btn hidden" aria-label="뒤로">←</button>
+      <h1 class="logo">디토<span class="logo-dot">.</span></h1>
+      <button id="btn-settings" class="icon-btn" aria-label="설정">⚙</button>
+    </header>
+
+    <!-- ===== Screen: Home ===== -->
+    <main id="screen-home" class="screen">
+      <div class="badge-row">
+        <span class="hero-caption">세대 공감 타임슬립 셔틀</span>
+        <span class="badge-discovery">DISCOVERY MODE</span>
+      </div>
+
+      <section class="hero-card" id="hero-card">
+        <div class="hero-art" id="hero-art"></div>
+        <div class="hero-meta">
+          <p class="hero-title">응답하라, 그 시절 명곡</p>
+          <p class="hero-sub">원곡 ↔ 리메이크를 한 번에. 타임 셔틀을 당겨보세요.</p>
+          <button class="hero-play" id="hero-play">▶ 추천 셔틀 재생</button>
+        </div>
+      </section>
+
+      <div class="view-toggle" id="view-toggle">
+        <button data-view="retro" class="vt-btn">RETRO</button>
+        <button data-view="grid" class="vt-btn active" aria-label="그리드">▦</button>
+        <button data-view="modern" class="vt-btn">MODERN</button>
+      </div>
+
+      <section id="pair-list" class="pair-list grid"></section>
+    </main>
+
+    <!-- ===== Screen: Search ===== -->
+    <main id="screen-search" class="screen hidden">
+      <div class="search-box">
+        <input id="search-input" type="search" placeholder="곡명, 아티스트 검색 (iTunes)" autocomplete="off" />
+        <button id="search-btn">검색</button>
+      </div>
+      <p class="search-hint" id="search-hint">30초 미리듣기는 iTunes에서, 전체 곡은 설정에서 YouTube API 키 등록 후 이용할 수 있어요.</p>
+      <section id="search-results" class="search-results"></section>
+    </main>
+
+    <!-- ===== Screen: Library ===== -->
+    <main id="screen-library" class="screen hidden">
+      <h2 class="section-title">내 라이브러리</h2>
+      <p class="search-hint">플레이어에서 <b>＋</b> 버튼으로 셔틀 쌍을 저장할 수 있어요.</p>
+      <section id="library-list" class="pair-list list"></section>
+    </main>
+
+    <!-- ===== Screen: Player ===== -->
+    <main id="screen-player" class="screen hidden">
+      <div class="badge-row player-badge-row">
+        <span class="mode-chip" id="mode-chip">REMAKE</span>
+        <span class="badge-discovery">DISCOVERY MODE</span>
+      </div>
+
+      <section class="album-card" id="album-card">
+        <div class="album-art" id="album-art">
+          <div class="cassette-overlay">
+            <div class="cassette-window">
+              <span class="reel" id="reel-l"></span>
+              <span class="tape-line"></span>
+              <span class="reel" id="reel-r"></span>
+            </div>
+            <span class="cassette-label">SIDE A · ANALOG</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="song-info">
+        <h2 class="song-title" id="song-title">—</h2>
+        <p class="song-subtitle" id="song-subtitle">—</p>
+        <p class="source-tag" id="source-tag">iTunes 30초 미리듣기</p>
+      </section>
+
+      <section class="progress-area">
+        <input type="range" id="progress" class="progress" min="0" max="100" value="0" step="0.1" />
+        <div class="time-row">
+          <span class="time mono" id="time-cur">0:00</span>
+          <span class="time mono" id="time-dur">0:00</span>
+        </div>
+      </section>
+
+      <section class="controls">
+        <button class="ctrl-btn small" id="btn-prev" aria-label="이전 곡">⏮</button>
+        <button class="ctrl-btn play" id="btn-play" aria-label="재생/일시정지">▶</button>
+        <button class="ctrl-btn small" id="btn-next" aria-label="다음 곡">⏭</button>
+      </section>
+      <p class="signal-caption mono">SIGNAL POWER <span id="signal-bars">▁▃▅▇</span></p>
+
+      <section class="year-selector">
+        <div class="year-side original">
+          <span class="year-label">ORIGINAL</span>
+          <span class="year-value mono" id="year-original">19—</span>
+        </div>
+        <input type="range" id="shuttle" class="shuttle" min="0" max="100" value="100" step="1" />
+        <div class="year-side selected">
+          <span class="year-label">SELECTED</span>
+          <span class="year-value mono" id="year-remake">20—</span>
+        </div>
+      </section>
+      <p class="shuttle-caption mono" id="shuttle-caption">⟵ TIME SHUTTLE ⟶</p>
+    </main>
+
+    <!-- ===== FAB ===== -->
+    <button id="fab" class="fab hidden" aria-label="라이브러리에 추가">＋</button>
+
+    <!-- ===== Bottom Navigation ===== -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-screen="home"><span class="nav-ico">⌂</span><span>Home</span></button>
+      <button class="nav-btn" data-screen="search"><span class="nav-ico">⌕</span><span>Search</span></button>
+      <button class="nav-btn" data-screen="library"><span class="nav-ico">♡</span><span>Library</span></button>
+    </nav>
+
+    <!-- ===== Glitch overlay (time-slip effect) ===== -->
+    <div id="glitch" class="glitch-overlay hidden">
+      <div class="glitch-scanlines"></div>
+      <div class="glitch-text mono" id="glitch-text">REWINDING…</div>
+    </div>
+
+    <!-- ===== Settings Modal ===== -->
+    <div id="settings-modal" class="modal hidden">
+      <div class="modal-card">
+        <h3>설정</h3>
+        <label class="field-label" for="yt-key">YouTube Data API v3 키</label>
+        <input id="yt-key" type="password" placeholder="AIza… (브라우저에만 저장됩니다)" autocomplete="off" />
+        <p class="field-help">키는 서버로 전송되지 않고 이 브라우저(localStorage)에만 저장됩니다. GCP 콘솔에서 HTTP 리퍼러 제한을 걸어두는 것을 권장합니다.</p>
+        <label class="field-label" for="source-select">재생 소스</label>
+        <select id="source-select">
+          <option value="preview">iTunes 30초 미리듣기 (키 불필요)</option>
+          <option value="youtube">YouTube 전체 곡 (API 키 필요)</option>
+        </select>
+        <div class="modal-actions">
+          <button id="settings-cancel" class="btn ghost">닫기</button>
+          <button id="settings-save" class="btn primary">저장</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- hidden YouTube player mounts -->
+    <div id="yt-mount-a" class="yt-mount"></div>
+    <div id="yt-mount-b" class="yt-mount"></div>
+
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/itunes.js"></script>
+  <script src="js/youtube.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
