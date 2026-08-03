@@ -59,6 +59,10 @@ html, body {
 .mono { font-family: var(--font-mono); letter-spacing: 0.02em; }
 .hidden { display: none !important; }
 
+/* ===== Icons (Lucide) ===== */
+.lucide { display: inline-block; vertical-align: -2px; }
+.inline-ico { display: inline-flex; align-items: center; }
+
 /* ===== 폰 캔버스 ===== */
 .phone {
   position: relative;
@@ -109,6 +113,9 @@ html, body {
   color: var(--color-text-primary);
   font-size: 19px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .icon-btn:hover { background: rgba(0,0,0,.08); }
 .header .icon-btn:first-child { margin-right: auto; }
@@ -144,6 +151,19 @@ html, body {
   padding: 5px 12px;
   border-radius: 20px;
   font-family: var(--font-mono);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: transform .1s ease, filter .15s ease;
+}
+.badge-discovery:hover { filter: brightness(1.08); }
+.badge-discovery:active { transform: scale(.95); }
+/* 주사위를 굴린 직후 살짝 튀어오르는 피드백 */
+.badge-discovery.rolling { animation: discover-pop .45s ease; }
+@keyframes discover-pop {
+  40% { transform: scale(1.09) rotate(-3deg); }
 }
 .hero-caption {
   font-size: 13px;
@@ -183,6 +203,9 @@ html, body {
   border-radius: 20px;
   cursor: pointer;
   font-family: var(--font-sans);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* ===== View Toggle (RETRO / grid / MODERN) ===== */
@@ -206,6 +229,9 @@ html, body {
   border-radius: 16px;
   cursor: pointer;
   letter-spacing: .06em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .vt-btn.active {
   background: var(--color-accent);
@@ -219,6 +245,35 @@ html, body {
   color: var(--color-text-primary);
   margin-top: 4px;
 }
+/* 목록 헤더: 현재 시대 캡션 + 레이아웃 토글(테마 선택과 다른 축) */
+.list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -4px;
+}
+.list-caption {
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  opacity: .55;
+}
+.layout-btn {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: var(--color-text-primary);
+  opacity: .5;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .15s ease;
+}
+.layout-btn:hover { opacity: .9; }
+
 .pair-list { display: grid; gap: 12px; }
 .pair-list.grid { grid-template-columns: 1fr 1fr; }
 .pair-list.list { grid-template-columns: 1fr; }
@@ -264,6 +319,8 @@ html, body {
   border: none; background: transparent;
   color: var(--color-text-on-card);
   opacity: .5; cursor: pointer; font-size: 16px;
+  display: inline-flex;
+  align-items: center;
 }
 
 /* ===== Search ===== */
@@ -543,6 +600,9 @@ html, body {
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(0,0,0,.35);
   z-index: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ===== Bottom Nav ===== */
@@ -572,7 +632,7 @@ html, body {
   cursor: pointer;
   padding: 6px 14px;
 }
-.nav-ico { font-size: 18px; }
+.nav-ico { display: flex; align-items: center; justify-content: center; }
 .nav-btn.active { color: var(--color-accent); }
 
 /* ===== Glitch overlay ===== */

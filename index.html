@@ -7,23 +7,24 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <!-- ?v= : 브라우저 캐시 무효화용 버전. 자산을 고쳤는데 반영이 안 되면 숫자를 올린다. -->
+  <link rel="stylesheet" href="css/style.css?v=2" />
 </head>
 <body>
   <div id="app" class="phone">
 
     <!-- ===== Header ===== -->
     <header class="header">
-      <button id="btn-back" class="icon-btn hidden" aria-label="뒤로">←</button>
-      <h1 class="logo">디토<span class="logo-dot">.</span></h1>
-      <button id="btn-settings" class="icon-btn" aria-label="설정">⚙</button>
+      <button id="btn-back" class="icon-btn hidden" aria-label="뒤로"><span data-icon="arrow-left" data-icon-size="19"></span></button>
+      <h1 class="logo">ditto<span class="logo-dot">.</span></h1>
+      <button id="btn-settings" class="icon-btn" aria-label="설정"><span data-icon="settings" data-icon-size="19"></span></button>
     </header>
 
     <!-- ===== Screen: Home ===== -->
     <main id="screen-home" class="screen">
       <div class="badge-row">
         <span class="hero-caption">세대 공감 타임슬립 셔틀</span>
-        <span class="badge-discovery">DISCOVERY MODE</span>
+        <button class="badge-discovery" data-discover aria-label="랜덤 셔틀 발견"><span data-icon="shuffle" data-icon-size="11"></span>DISCOVERY</button>
       </div>
 
       <section class="hero-card" id="hero-card">
@@ -31,14 +32,18 @@
         <div class="hero-meta">
           <p class="hero-title">응답하라, 그 시절 명곡</p>
           <p class="hero-sub">원곡 ↔ 리메이크를 한 번에. 타임 셔틀을 당겨보세요.</p>
-          <button class="hero-play" id="hero-play">▶ 추천 셔틀 재생</button>
+          <button class="hero-play" id="hero-play"><span data-icon="play" data-icon-size="13"></span> 추천 셔틀 재생</button>
         </div>
       </section>
 
-      <div class="view-toggle" id="view-toggle">
-        <button data-view="retro" class="vt-btn">RETRO</button>
-        <button data-view="grid" class="vt-btn active" aria-label="그리드">▦</button>
-        <button data-view="modern" class="vt-btn">MODERN</button>
+      <div class="view-toggle" id="view-toggle" role="group" aria-label="시대 필터">
+        <button data-era="original" class="vt-btn" aria-pressed="false">원곡</button>
+        <button data-era="remake" class="vt-btn active" aria-pressed="true">리메이크</button>
+      </div>
+
+      <div class="list-header">
+        <span class="list-caption mono" id="list-caption">리메이크 REMAKE</span>
+        <button id="btn-layout" class="layout-btn" aria-label="레이아웃 전환"></button>
       </div>
 
       <section id="pair-list" class="pair-list grid"></section>
@@ -57,7 +62,7 @@
     <!-- ===== Screen: Library ===== -->
     <main id="screen-library" class="screen hidden">
       <h2 class="section-title">내 라이브러리</h2>
-      <p class="search-hint">플레이어에서 <b>＋</b> 버튼으로 셔틀 쌍을 저장할 수 있어요.</p>
+      <p class="search-hint">플레이어에서 <span class="inline-ico" data-icon="plus" data-icon-size="12"></span> 버튼으로 셔틀 쌍을 저장할 수 있어요.</p>
       <section id="library-list" class="pair-list list"></section>
     </main>
 
@@ -65,7 +70,7 @@
     <main id="screen-player" class="screen hidden">
       <div class="badge-row player-badge-row">
         <span class="mode-chip" id="mode-chip">REMAKE</span>
-        <span class="badge-discovery">DISCOVERY MODE</span>
+        <button class="badge-discovery" data-discover aria-label="랜덤 셔틀 발견"><span data-icon="shuffle" data-icon-size="11"></span>DISCOVERY</button>
       </div>
 
       <section class="album-card" id="album-card">
@@ -96,9 +101,9 @@
       </section>
 
       <section class="controls">
-        <button class="ctrl-btn small" id="btn-prev" aria-label="이전 곡">⏮</button>
-        <button class="ctrl-btn play" id="btn-play" aria-label="재생/일시정지">▶</button>
-        <button class="ctrl-btn small" id="btn-next" aria-label="다음 곡">⏭</button>
+        <button class="ctrl-btn small" id="btn-prev" aria-label="이전 곡"><span data-icon="skip-back" data-icon-size="16"></span></button>
+        <button class="ctrl-btn play" id="btn-play" aria-label="재생/일시정지"><span data-icon="play" data-icon-size="22"></span></button>
+        <button class="ctrl-btn small" id="btn-next" aria-label="다음 곡"><span data-icon="skip-forward" data-icon-size="16"></span></button>
       </section>
       <p class="signal-caption mono">SIGNAL POWER <span id="signal-bars">▁▃▅▇</span></p>
 
@@ -117,13 +122,13 @@
     </main>
 
     <!-- ===== FAB ===== -->
-    <button id="fab" class="fab hidden" aria-label="라이브러리에 추가">＋</button>
+    <button id="fab" class="fab hidden" aria-label="라이브러리에 추가"><span data-icon="plus" data-icon-size="22"></span></button>
 
     <!-- ===== Bottom Navigation ===== -->
     <nav class="bottom-nav">
-      <button class="nav-btn active" data-screen="home"><span class="nav-ico">⌂</span><span>Home</span></button>
-      <button class="nav-btn" data-screen="search"><span class="nav-ico">⌕</span><span>Search</span></button>
-      <button class="nav-btn" data-screen="library"><span class="nav-ico">♡</span><span>Library</span></button>
+      <button class="nav-btn active" data-screen="home"><span class="nav-ico" data-icon="home" data-icon-size="18"></span><span>Home</span></button>
+      <button class="nav-btn" data-screen="search"><span class="nav-ico" data-icon="search" data-icon-size="18"></span><span>Search</span></button>
+      <button class="nav-btn" data-screen="library"><span class="nav-ico" data-icon="heart" data-icon-size="18"></span><span>Library</span></button>
     </nav>
 
     <!-- ===== Glitch overlay (time-slip effect) ===== -->
@@ -158,11 +163,12 @@
     <div id="toast" class="toast hidden"></div>
   </div>
 
-  <script src="js/config.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/itunes.js"></script>
-  <script src="js/youtube.js"></script>
-  <script src="js/player.js"></script>
-  <script src="js/app.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/config.js?v=2"></script>
+  <script src="js/data.js?v=2"></script>
+  <script src="js/itunes.js?v=2"></script>
+  <script src="js/youtube.js?v=2"></script>
+  <script src="js/player.js?v=2"></script>
+  <script src="js/app.js?v=2"></script>
 </body>
 </html>
