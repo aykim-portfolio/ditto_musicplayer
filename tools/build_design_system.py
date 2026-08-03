@@ -380,6 +380,103 @@ TEXTURE = f"""
 </div>
 """
 
+# ---------------------------------------------------------------- 플레이그라운드
+# 토큰 블록을 맨 위에 딱 한 번만 두고 그 아래 전체 컴포넌트를 붙인 단일 파일.
+# 디자인 우선 실험용 — 토큰 한 줄만 고치면 페이지 전체가 즉시 바뀐다.
+
+# 토큰이 정의된 최상위 블록 3개. 뒤쪽의 [data-theme="…"] .foo 같은
+# 하위 선택자는 `\s*\{` 로 바로 이어지지 않으므로 매칭되지 않는다.
+TOKEN_PATTERNS = [
+    r":root\s*\{[^}]*\}",
+    r'\[data-theme="modern"\]\s*\{[^}]*\}',
+    r'\[data-theme="retro"\]\s*\{[^}]*\}',
+]
+
+EDIT_BEGIN = "/* ===== DITTO TOKENS : BEGIN ===== */"
+EDIT_END = "/* ===== DITTO TOKENS : END ===== */"
+
+
+def split_tokens():
+    """style.css 를 (토큰 블록, 나머지) 로 가른다."""
+    blocks, rest = [], CSS
+    for pat in TOKEN_PATTERNS:
+        m = re.search(pat, rest)
+        blocks.append(m.group(0))
+        rest = rest[:m.start()] + rest[m.end():]
+    return "\n\n".join(blocks), rest
+
+
+SECTIONS = [
+    ("타이포그래피", TYPE),
+    ("버튼", BUTTONS),
+    ("카드", CARDS),
+    ("앨범 아트 · 카세트", ALBUM),
+    ("슬라이더", SLIDERS),
+    ("내비게이션", NAV),
+    ("검색", SEARCH),
+    ("뱃지 · 피드백", BADGES),
+    ("로딩 · 글리치", FEEDBACK),
+    ("모달", MODAL),
+    ("표면 · 그레인", TEXTURE),
+]
+
+
+def playground():
+    token_css, rest_css = split_tokens()
+    body_for = lambda theme: (
+        '<div class="ds-sec">색상 토큰</div>' + swatches(theme)
+        + "".join(f'<div class="ds-sec">{t}</div>{m}' for t, m in SECTIONS)
+    )
+    return f"""<!-- @dsCard group="Playground" name="토큰 플레이그라운드" subtitle="상단 토큰만 고치면 전체가 바뀝니다" -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ditto · 토큰 플레이그라운드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+{EDIT_BEGIN}
+/*
+  ┌──────────────────────────────────────────────────────────┐
+  │  여기만 고치면 아래 모든 컴포넌트가 한 번에 바뀝니다.       │
+  │  두 테마를 좌우로 비교하면서 값을 조정해 보세요.            │
+  │                                                          │
+  │  확정되면 이 BEGIN~END 블록을 그대로 코드에 반영합니다.     │
+  │  (ditto/css/style.css 최상단의 같은 블록과 1:1 대응)       │
+  └──────────────────────────────────────────────────────────┘
+*/
+{token_css}
+{EDIT_END}
+
+/* ↓↓↓ 아래는 컴포넌트 정의입니다. 세부 조정이 필요할 때만 건드리세요. ↓↓↓ */
+{rest_css}
+{PREVIEW_CSS}
+.ds-sec {{ font-family: "Space Mono", monospace; font-size: 11px; font-weight: 700;
+           letter-spacing: .14em; text-transform: uppercase;
+           color: var(--color-text-primary); opacity: .8;
+           border-bottom: 1px solid currentColor; padding-bottom: 6px; margin-top: 8px; }}
+.ds-body {{ gap: 13px; }}
+</style>
+</head>
+<body>
+<div class="ds-wrap">
+  <div class="ds-pane" data-theme="retro">
+    <div class="ds-head">RETRO · 원곡</div>
+    <div class="ds-body">{body_for('retro')}</div>
+  </div>
+  <div class="ds-pane" data-theme="modern">
+    <div class="ds-head">MODERN · 리메이크</div>
+    <div class="ds-body">{body_for('modern')}</div>
+  </div>
+</div>
+</body>
+</html>
+"""
+
+
 # ---------------------------------------------------------------- 출력
 # (경로, 그룹, 이름, 부제, 본문) — 본문이 None 이면 테마별로 다른 내용(색상 스와치)
 
@@ -415,6 +512,13 @@ def main():
         os.makedirs(os.path.dirname(full), exist_ok=True)
         io.open(full, "w", encoding="utf-8", newline="\n").write(html)
         manifest.append({"path": path, "group": group, "name": name, "subtitle": subtitle})
+
+    # 실험용 단일 페이지
+    pg = os.path.join(OUT, "playground.html")
+    io.open(pg, "w", encoding="utf-8", newline="\n").write(playground())
+    manifest.insert(0, {"path": "playground.html", "group": "Playground",
+                        "name": "토큰 플레이그라운드",
+                        "subtitle": "상단 토큰만 고치면 전체가 바뀝니다"})
 
     io.open(os.path.join(OUT, "cards.json"), "w", encoding="utf-8").write(
         json.dumps(manifest, ensure_ascii=False, indent=1))
