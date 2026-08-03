@@ -130,21 +130,24 @@ window.DittoPlayer = (() => {
 
   /* ---------- 공개 API ---------- */
 
-  /** 셔틀 쌍 로드 후 기본 모드(리메이크)로 재생 시작 */
-  async function loadPair(pair, { autoplay = true } = {}) {
+  /** 셔틀 쌍 로드 후 지정 모드(기본: 리메이크)로 재생 시작 */
+  async function loadPair(pair, { autoplay = true, startMode = null } = {}) {
     stop();
     state.pair = pair;
-    state.mode = pair.remake ? 'remake' : 'original';
+    state.mode = (startMode && pair[startMode])
+      ? startMode
+      : (pair.remake ? 'remake' : 'original');
     state.source = DittoConfig.getSource();
     handlers.onModeChange?.(state.mode);
     handlers.onTrackLoaded?.(pair, state.mode);
-    if (autoplay) await play();
+    if (autoplay) await play(0);
   }
 
-  async function play() {
+  async function play(seekSec) {
     if (!state.pair) return;
     try {
-      const engine = await prepareEngine(state.mode, currentEngine().getCurrentTime() || 0);
+      const seek = seekSec != null ? seekSec : (currentEngine().getCurrentTime() || 0);
+      const engine = await prepareEngine(state.mode, seek);
       engine.setVolume(1);
       engine.play();
       state.playing = true;

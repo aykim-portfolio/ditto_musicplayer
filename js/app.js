@@ -14,6 +14,22 @@
   let activeScreen = 'home';
   let seeking = false;
 
+  /* ---------- 아이콘 (Lucide) ---------- */
+  function toPascalCase(name) {
+    return name.replace(/(^\w|-\w)/g, (m) => m.replace('-', '').toUpperCase());
+  }
+  function iconSvg(name, size = 20) {
+    const node = window.lucide && window.lucide.icons[toPascalCase(name)];
+    if (!node) return '';
+    return window.lucide.createElement(node, { width: size, height: size }).outerHTML;
+  }
+  function mountIcons(root = document) {
+    root.querySelectorAll('[data-icon]').forEach((el) => {
+      el.innerHTML = iconSvg(el.dataset.icon, Number(el.dataset.iconSize) || 20);
+    });
+  }
+  mountIcons();
+
   /* ---------- 공용 헬퍼 ---------- */
   function toast(msg, ms = 2600) {
     const el = $('#toast');
@@ -44,6 +60,8 @@
     $('#btn-back').classList.toggle('hidden', name !== 'player');
     $('#fab').classList.toggle('hidden', !(name === 'player' && currentPairIndex >= 0));
     if (name === 'library') renderLibrary();
+    // 플레이어가 셔틀에 맞춰 바꾼 테마를 홈으로 돌아오면 시대 필터 기준으로 되돌린다
+    if (name === 'home') setTheme(ERA[eraFilter].theme);
   }
 
   $$('.nav-btn').forEach((b) =>
@@ -84,24 +102,45 @@
     return pair;
   }
 
+  /* ---------- 시대 필터 (원곡 | 리메이크) ----------
+     카드가 어느 시대의 얼굴(연도/아티스트/아트워크)을 보여줄지 결정한다. */
+  const ERA = {
+    original: {
+      theme: 'retro',
+      caption: '원곡 ORIGINAL',
+      years: (d) => `${d.original.year}`,
+      sub:   (d) => d.original.artist,
+      art:   (p) => p.original.artwork || p.remake.artwork,
+    },
+    remake: {
+      theme: 'modern',
+      caption: '리메이크 REMAKE',
+      years: (d) => `${d.remake.year}`,
+      sub:   (d) => d.remake.artist,
+      art:   (p) => p.remake.artwork || p.original.artwork,
+    },
+  };
+  let eraFilter = 'remake';
+
   /* ---------- Home: 추천 셔틀 목록 ---------- */
   function renderPairCards(container, defs, { removable = false } = {}) {
+    const era = ERA[eraFilter];
     container.innerHTML = '';
     defs.forEach((def) => {
       const card = document.createElement('article');
       card.className = 'pair-card';
       card.innerHTML = `
         <div class="pair-art skeleton" data-art="${def.id}">
-          <span class="pair-years mono">${def.original.year} ⇄ ${def.remake.year}</span>
+          <span class="pair-years mono">${era.years(def)}</span>
         </div>
         <div class="pair-meta">
           <p class="pair-title">${def.title}</p>
-          <p class="pair-sub">${def.original.artist} → ${def.remake.artist}</p>
+          <p class="pair-sub">${era.sub(def)}</p>
         </div>
-        ${removable ? '<button class="pair-remove" aria-label="삭제">✕</button>' : ''}
+        ${removable ? `<button class="pair-remove" aria-label="삭제">${iconSvg('x', 14)}</button>` : ''}
       `;
       card.addEventListener('click', (e) => {
-        if (e.target.classList.contains('pair-remove')) {
+        if (e.target.closest('.pair-remove')) {
           removeFromLibrary(def.id);
           return;
         }
@@ -111,7 +150,7 @@
 
       // 아트워크 lazy 매칭
       resolvePair(def).then((pair) => {
-        const art = pair.remake.artwork || pair.original.artwork;
+        const art = era.art(pair);
         const el = container.querySelector(`[data-art="${def.id}"]`);
         if (el && art) {
           el.classList.remove('skeleton');
@@ -130,23 +169,70 @@
   }).catch(() => {});
   $('#hero-play').addEventListener('click', () => openPair(DITTO_PAIRS[0]));
 
-  /* ---------- View 토글 (RETRO | ▦ | MODERN) ---------- */
+  /* ---------- 시대 필터 토글 (원곡 | 양쪽 | 리메이크) ---------- */
+  function applyEra(next) {
+    eraFilter = next;
+    const era = ERA[next];
+    setTheme(era.theme);
+    $('#list-caption').textContent = era.caption;
+    $$('#view-toggle .vt-btn').forEach((b) => {
+      const on = b.dataset.era === next;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    renderPairCards($('#pair-list'), DITTO_PAIRS);
+    if (activeScreen === 'library') renderLibrary();
+  }
+
   $('#view-toggle').addEventListener('click', (e) => {
     const btn = e.target.closest('.vt-btn');
-    if (!btn) return;
-    const v = btn.dataset.view;
-    if (v === 'grid') {
-      const list = $('#pair-list');
-      const isGrid = list.classList.toggle('grid');
-      list.classList.toggle('list', !isGrid);
-      btn.classList.toggle('active', isGrid);
-    } else {
-      setTheme(v === 'retro' ? 'retro' : 'modern');
-      $$('#view-toggle .vt-btn').forEach((b) => {
-        if (b.dataset.view !== 'grid') b.classList.toggle('active', b === btn);
-      });
-    }
+    if (!btn || btn.dataset.era === eraFilter) return;
+    applyEra(btn.dataset.era);
   });
+
+  /* ---------- Discovery: 랜덤 셔틀 발견 ----------
+     홈에서는 무작위 한 쌍을 열고, 플레이어에서는 다음 랜덤으로 점프한다.
+     지금 듣고 있는 곡은 후보에서 빼서 같은 곡이 다시 나오지 않게 한다. */
+  const RECENT_MAX = 3;              // 최근 이만큼은 다시 뽑지 않는다
+  const recentDiscoveries = [];
+
+  function discoverRandom(btn) {
+    const fresh = DITTO_PAIRS.filter(
+      (p, i) => i !== currentPairIndex && !recentDiscoveries.includes(p.id)
+    );
+    // 후보가 마르면 최근 기록을 비우고 현재 곡만 제외
+    const pool = fresh.length ? fresh : DITTO_PAIRS.filter((_, i) => i !== currentPairIndex);
+    if (!pool.length) return;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+
+    recentDiscoveries.push(pick.id);
+    if (recentDiscoveries.length > RECENT_MAX) recentDiscoveries.shift();
+
+    btn.classList.remove('rolling');
+    void btn.offsetWidth;            // 연타해도 애니메이션이 다시 재생되도록 리플로우
+    btn.classList.add('rolling');
+
+    toast(`랜덤 타임슬립 · 〈${pick.title}〉 ${pick.original.year} ⇄ ${pick.remake.year}`);
+    openPair(pick);
+  }
+  $$('[data-discover]').forEach((btn) =>
+    btn.addEventListener('click', () => discoverRandom(btn))
+  );
+
+  /* ---------- 레이아웃 토글 (그리드 ⇄ 리스트) ---------- */
+  let isGridLayout = true;
+  function applyLayout() {
+    const list = $('#pair-list');
+    list.classList.toggle('grid', isGridLayout);
+    list.classList.toggle('list', !isGridLayout);
+    // 아이콘은 "현재 상태"를 보여준다
+    $('#btn-layout').innerHTML = iconSvg(isGridLayout ? 'layout-grid' : 'layout-list', 16);
+  }
+  $('#btn-layout').addEventListener('click', () => {
+    isGridLayout = !isGridLayout;
+    applyLayout();
+  });
+  applyLayout();
 
   /* ---------- Player 열기 ---------- */
   async function openPair(def, { show = true } = {}) {
@@ -157,7 +243,8 @@
     $('#song-subtitle').textContent = '매칭 중…';
     try {
       const pair = await resolvePair(def);
-      await DittoPlayer.loadPair(pair);
+      // 보고 있던 시대(원곡/리메이크)로 재생을 시작한다
+      await DittoPlayer.loadPair(pair, { startMode: eraFilter });
     } catch {
       toast('트랙 매칭에 실패했어요. 네트워크를 확인해주세요.');
     }
@@ -200,9 +287,9 @@
     const shuttle = $('#shuttle');
     shuttle.value = isOriginal ? 0 : 100;
     shuttle.disabled = !(pair.original && pair.remake);
-    $('#shuttle-caption').textContent = shuttle.disabled
+    $('#shuttle-caption').innerHTML = shuttle.disabled
       ? '단일 트랙 — 셔틀 불가'
-      : '⟵ TIME SHUTTLE ⟶';
+      : `${iconSvg('arrow-left', 12)} TIME SHUTTLE ${iconSvg('arrow-right', 12)}`;
 
     $('#source-tag').textContent =
       DittoPlayer.state.source === 'youtube' ? 'YouTube 전체 곡' : 'iTunes 30초 미리듣기';
@@ -271,7 +358,7 @@
       $('#time-dur').textContent = fmtTime(dur);
     },
     onStateChange: (playing) => {
-      $('#btn-play').textContent = playing ? '⏸' : '▶';
+      $('#btn-play').innerHTML = iconSvg(playing ? 'pause' : 'play', 22);
       $('#album-card').classList.toggle('playing', playing);
       $('#signal-bars').textContent = playing ? '▂▅▇▅' : '▁▁▁▁';
     },
