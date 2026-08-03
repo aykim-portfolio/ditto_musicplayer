@@ -7,4 +7,7 @@ Thumbs.db
 .claude/
 .vscode/
 
+# 디자인 시스템 프리뷰 빌드 산출물 (tools/build_design_system.py 로 재생성)
+tools/_build/
+
 # API keys are stored in browser localStorage only — never commit keys
