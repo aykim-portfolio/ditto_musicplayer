@@ -380,6 +380,153 @@ TEXTURE = f"""
 </div>
 """
 
+# ---------------------------------------------------------------- 앱 화면
+# index.html 에서 화면 마크업을 그대로 추출하고, JS 가 런타임에 채우는 부분
+# (목록·곡 정보·아이콘)만 샘플로 메운다. 마크업을 손으로 쓰지 않으므로
+# index.html 을 고치면 화면 프리뷰도 따라간다.
+
+INDEX = io.open(os.path.join(SRC, "index.html"), encoding="utf-8").read()
+
+HEADER_HTML = re.search(r'<header class="header">.*?</header>', INDEX, re.S).group(0)
+NAV_HTML = re.search(r'<nav class="bottom-nav">.*?</nav>', INDEX, re.S).group(0)
+FAB_HTML = re.search(r'<button id="fab".*?</button>', INDEX, re.S).group(0)
+
+
+def mount_icons(html):
+    """<span data-icon="…"></span> 를 정적 SVG 로 채운다 (프리뷰에는 JS 가 없다)."""
+    def rep(m):
+        pre, name, post = m.group(1), m.group(2), m.group(3)
+        size = re.search(r'data-icon-size="(\d+)"', pre + post)
+        return f'<span{pre}data-icon="{name}"{post}>{ico(name, int(size.group(1)) if size else 20)}</span>'
+    return re.sub(r'<span([^>]*?)data-icon="([\w-]+)"([^>]*?)></span>', rep, html)
+
+
+def pair_card(title, sub, years, removable=False):
+    rm = f'<button class="pair-remove">{ico("x", 14)}</button>' if removable else ""
+    return (f'<article class="pair-card">'
+            f'<div class="pair-art ds-art"><span class="pair-years mono">{years}</span></div>'
+            f'<div class="pair-meta"><p class="pair-title">{title}</p>'
+            f'<p class="pair-sub">{sub}</p></div>{rm}</article>')
+
+
+def result_row(title, sub, year):
+    return (f'<div class="result-row"><div class="result-art ds-art"></div>'
+            f'<div class="result-meta"><div class="result-title">{title}</div>'
+            f'<div class="result-sub">{sub}</div></div>'
+            f'<span class="result-year">{year}</span></div>')
+
+
+HOME_CARDS = "".join(pair_card(t, s, y) for t, s, y in [
+    ("너에게", "성시경", "2013"), ("소녀", "오혁", "2015"),
+    ("청춘", "김필", "2015"), ("걱정말아요 그대", "이적", "2015"),
+    ("너의 의미", "아이유", "2014"), ("나의 옛날이야기", "아이유", "2014"),
+])
+LIB_CARDS = "".join(pair_card(t, s, y, removable=True) for t, s, y in [
+    ("너에게", "서태지와 아이들 → 성시경", "1993 ⇄ 2013"),
+    ("너의 의미", "산울림 → 아이유", "1984 ⇄ 2014"),
+])
+SEARCH_ROWS = "".join(result_row(t, s, y) for t, s, y in [
+    ("너에게", "성시경 · 응답하라 1994 OST", "2013"),
+    ("너에게", "서태지와 아이들", "1993"),
+    ("소녀", "오혁 · 응답하라 1988 OST", "2015"),
+])
+
+# JS 가 채우는 자리를 샘플로 치환 (좌: index.html 원문, 우: 프리뷰용)
+FILL = [
+    ('<section id="pair-list" class="pair-list grid"></section>',
+     f'<section class="pair-list grid">{HOME_CARDS}</section>'),
+    ('<section id="library-list" class="pair-list list"></section>',
+     f'<section class="pair-list list">{LIB_CARDS}</section>'),
+    ('<section id="search-results" class="search-results"></section>',
+     f'<section class="search-results">{SEARCH_ROWS}</section>'),
+    ('<button id="btn-layout" class="layout-btn" aria-label="레이아웃 전환"></button>',
+     f'<button class="layout-btn">{ico("layout-grid", 16)}</button>'),
+    ('<div class="hero-art" id="hero-art"></div>',
+     '<div class="hero-art ds-art"></div>'),
+    ('<div class="album-art" id="album-art">', '<div class="album-art ds-art">'),
+    ('<section class="album-card" id="album-card">',
+     '<section class="album-card playing">'),
+    ('<h2 class="song-title" id="song-title">—</h2>',
+     '<h2 class="song-title">성시경 〈너에게〉</h2>'),
+    ('<p class="song-subtitle" id="song-subtitle">—</p>',
+     '<p class="song-subtitle">응답하라 1994 OST Part 2</p>'),
+    ('<span class="time mono" id="time-cur">0:00</span>',
+     '<span class="time mono">0:12</span>'),
+    ('<span class="time mono" id="time-dur">0:00</span>',
+     '<span class="time mono">0:29</span>'),
+    ('value="0" step="0.1" />', 'value="42" step="0.1" style="--pct:42%" />'),
+    ('<span class="year-value mono" id="year-original">19—</span>',
+     '<span class="year-value mono">1993</span>'),
+    ('<span class="year-value mono" id="year-remake">20—</span>',
+     '<span class="year-value mono">2013</span>'),
+]
+
+
+def screen(name, *, nav=None, extra=""):
+    """index.html 의 한 화면을 폰 프레임 마크업으로 만든다."""
+    html = re.search(r'<main id="screen-%s".*?</main>' % name, INDEX, re.S).group(0)
+    html = html.replace('class="screen hidden"', 'class="screen"')
+    for a, b in FILL:
+        html = html.replace(a, b)
+
+    header = HEADER_HTML
+    if name == "player":                       # 플레이어에서는 뒤로가기가 보인다
+        header = header.replace('class="icon-btn hidden"', 'class="icon-btn"')
+        extra += FAB_HTML.replace('class="fab hidden"', 'class="fab"')
+
+    navhtml = NAV_HTML
+    if nav:                                    # 활성 탭 이동
+        navhtml = navhtml.replace('class="nav-btn active"', 'class="nav-btn"')
+        navhtml = navhtml.replace(f'class="nav-btn" data-screen="{nav}"',
+                                  f'class="nav-btn active" data-screen="{nav}"')
+    return mount_icons(header + html + extra + navhtml)
+
+
+SCREENS = [
+    ("home", "홈", "히어로 · 시대 필터 · 셔틀 목록", None),
+    ("player", "플레이어", "앨범 아트 · 타임 셔틀 · 컨트롤", None),
+    ("search", "검색", "iTunes 검색 · 결과 목록", "search"),
+    ("library", "라이브러리", "저장한 셔틀 쌍", "library"),
+]
+
+SCREEN_CSS = """
+.ds-screens { display: flex; gap: 22px; padding: 20px; justify-content: center;
+              flex-wrap: wrap; align-items: flex-start; }
+.ds-frame { display: flex; flex-direction: column; gap: 8px; }
+.ds-frame-label { font-family: "Space Mono", monospace; font-size: 10px; font-weight: 700;
+                  letter-spacing: .14em; text-align: center; color: #7a7a7a; }
+.ds-frame .phone { max-height: none; border-radius: 16px; }
+"""
+
+
+def screen_page(name, label, subtitle, nav):
+    body = screen(name, nav=nav)
+    frames = "".join(f"""
+  <div class="ds-frame">
+    <div class="ds-frame-label">{t.upper()} · {ko}</div>
+    <div class="phone" data-theme="{t}">{body}</div>
+  </div>""" for t, ko in (("retro", "원곡"), ("modern", "리메이크")))
+    return f"""<!-- @dsCard group="Screens" name="{label}" subtitle="{subtitle}" -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ditto · {label}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+{CSS}
+{PREVIEW_CSS}
+{SCREEN_CSS}
+</style>
+</head>
+<body><div class="ds-screens">{frames}</div></body>
+</html>
+"""
+
+
 # ---------------------------------------------------------------- 플레이그라운드
 # 토큰 블록을 맨 위에 딱 한 번만 두고 그 아래 전체 컴포넌트를 붙인 단일 파일.
 # 디자인 우선 실험용 — 토큰 한 줄만 고치면 페이지 전체가 즉시 바뀐다.
@@ -477,6 +624,60 @@ def playground():
 """
 
 
+def playground_screens():
+    """토큰 블록 + 실제 앱 화면 4종 × 두 테마. 축소해서 한눈에 비교한다."""
+    token_css, rest_css = split_tokens()
+    rows = ""
+    for theme, ko in (("retro", "원곡"), ("modern", "리메이크")):
+        frames = "".join(f"""
+    <div class="ds-frame">
+      <div class="ds-frame-label">{label}</div>
+      <div class="ds-mini"><div class="phone" data-theme="{theme}">{screen(nm, nav=nav)}</div></div>
+    </div>""" for nm, label, _sub, nav in SCREENS)
+        rows += f'<div class="ds-rowhead">{theme.upper()} · {ko}</div><div class="ds-screens">{frames}</div>'
+
+    return f"""<!-- @dsCard group="Playground" name="토큰 플레이그라운드 · 앱 화면" subtitle="실제 4개 화면이 토큰 변경에 어떻게 반응하는지" -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ditto · 앱 화면 플레이그라운드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+{EDIT_BEGIN}
+/*
+  ┌──────────────────────────────────────────────────────────┐
+  │  여기만 고치면 아래 8개 화면이 한 번에 바뀝니다.            │
+  │  실제 ditto 앱 화면이라, 토큰 변경이 제품에서 어떻게        │
+  │  보이는지 그대로 확인할 수 있습니다.                       │
+  │                                                          │
+  │  확정되면 이 BEGIN~END 블록을 그대로 코드에 반영합니다.     │
+  │  (ditto/css/style.css 최상단의 같은 블록과 1:1 대응)       │
+  └──────────────────────────────────────────────────────────┘
+*/
+{token_css}
+{EDIT_END}
+
+/* ↓↓↓ 아래는 컴포넌트 정의입니다. 세부 조정이 필요할 때만 건드리세요. ↓↓↓ */
+{rest_css}
+{PREVIEW_CSS}
+{SCREEN_CSS}
+.ds-rowhead {{ font-family: "Space Mono", monospace; font-size: 11px; font-weight: 700;
+               letter-spacing: .16em; color: #7a7a7a; padding: 16px 20px 0; }}
+/* 8개 화면을 한눈에 담기 위해 축소 (390×985 → 62%) */
+.ds-mini {{ width: 242px; height: 611px; overflow: hidden; }}
+.ds-mini .phone {{ transform: scale(.62); transform-origin: top left; flex: 0 0 auto; }}
+.ds-screens {{ gap: 16px; padding: 12px 20px 20px; justify-content: flex-start; }}
+</style>
+</head>
+<body>{rows}</body>
+</html>
+"""
+
+
 # ---------------------------------------------------------------- 출력
 # (경로, 그룹, 이름, 부제, 본문) — 본문이 None 이면 테마별로 다른 내용(색상 스와치)
 
@@ -513,12 +714,25 @@ def main():
         io.open(full, "w", encoding="utf-8", newline="\n").write(html)
         manifest.append({"path": path, "group": group, "name": name, "subtitle": subtitle})
 
-    # 실험용 단일 페이지
-    pg = os.path.join(OUT, "playground.html")
-    io.open(pg, "w", encoding="utf-8", newline="\n").write(playground())
-    manifest.insert(0, {"path": "playground.html", "group": "Playground",
-                        "name": "토큰 플레이그라운드",
-                        "subtitle": "상단 토큰만 고치면 전체가 바뀝니다"})
+    # 앱 화면 4종
+    for nm, label, subtitle, nav in SCREENS:
+        p = os.path.join(OUT, "screens", f"{nm}.html")
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        io.open(p, "w", encoding="utf-8", newline="\n").write(
+            screen_page(nm, label, subtitle, nav))
+        manifest.append({"path": f"screens/{nm}.html", "group": "Screens",
+                         "name": label, "subtitle": subtitle})
+
+    # 실험용 단일 페이지 2종 (컴포넌트 / 앱 화면)
+    for path, fn, name, subtitle in (
+        ("playground.html", playground, "토큰 플레이그라운드 · 컴포넌트",
+         "상단 토큰만 고치면 전체가 바뀝니다"),
+        ("playground-screens.html", playground_screens, "토큰 플레이그라운드 · 앱 화면",
+         "실제 4개 화면이 토큰 변경에 어떻게 반응하는지"),
+    ):
+        io.open(os.path.join(OUT, path), "w", encoding="utf-8", newline="\n").write(fn())
+        manifest.insert(0, {"path": path, "group": "Playground",
+                            "name": name, "subtitle": subtitle})
 
     io.open(os.path.join(OUT, "cards.json"), "w", encoding="utf-8").write(
         json.dumps(manifest, ensure_ascii=False, indent=1))
