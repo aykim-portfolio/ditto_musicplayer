@@ -737,6 +737,56 @@ def main():
     io.open(os.path.join(OUT, "cards.json"), "w", encoding="utf-8").write(
         json.dumps(manifest, ensure_ascii=False, indent=1))
 
+    # 로컬에서 전체를 훑어보기 위한 목차
+    groups = {}
+    for m in manifest:
+        groups.setdefault(m["group"], []).append(m)
+    order = ["Playground", "Screens", "Foundations", "Components"]
+    secs = ""
+    for g in order + [k for k in groups if k not in order]:
+        if g not in groups:
+            continue
+        items = "".join(
+            f'<li><a href="{m["path"]}">{m["name"]}</a>'
+            f'<span>{m["subtitle"] or ""}</span></li>' for m in groups[g])
+        secs += f"<h2>{g}</h2><ul>{items}</ul>"
+    io.open(os.path.join(OUT, "index.html"), "w", encoding="utf-8", newline="\n").write(f"""<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ditto 디자인 시스템 — 프리뷰 목차</title>
+<style>
+ body {{ font-family: "IBM Plex Sans KR", -apple-system, sans-serif; max-width: 760px;
+        margin: 0 auto; padding: 40px 24px 80px; color: #23201a; background: #faf7f0; }}
+ h1 {{ font-size: 24px; margin-bottom: 6px; }}
+ h1 span {{ color: #F5793A; }}
+ .sub {{ color: #8a8068; font-size: 13px; margin-bottom: 32px; line-height: 1.6; }}
+ h2 {{ font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #8a8068;
+       border-bottom: 1px solid #e2dbcb; padding-bottom: 7px; margin: 30px 0 4px; }}
+ ul {{ list-style: none; padding: 0; }}
+ li {{ display: flex; align-items: baseline; gap: 12px; padding: 9px 0;
+       border-bottom: 1px solid #efe9dc; }}
+ li a {{ font-weight: 600; color: #23201a; text-decoration: none; flex: 0 0 auto; }}
+ li a:hover {{ color: #F5793A; }}
+ li span {{ font-size: 12px; color: #9a9078; }}
+ .tip {{ margin-top: 34px; padding: 15px 17px; background: #fff; border-radius: 10px;
+         border: 1px solid #e8e0cf; font-size: 13px; line-height: 1.7; }}
+ code {{ background: #f2ece0; padding: 1px 5px; border-radius: 4px; font-size: 12px; }}
+</style></head>
+<body>
+<h1>ditto 디자인 시스템<span>.</span></h1>
+<p class="sub">css/style.css 에서 생성된 프리뷰 {len(manifest)}개. 각 화면은 RETRO / MODERN 두 테마를 나란히 보여줍니다.</p>
+{secs}
+<div class="tip">
+<b>디자인을 바꿔보려면</b><br>
+<code>tools/_build/playground-screens.html</code> 을 편집기로 열고 맨 위
+<code>DITTO TOKENS : BEGIN ~ END</code> 블록의 값을 고친 뒤 브라우저를 새로고침하세요.
+8개 화면이 한꺼번에 바뀝니다.<br><br>
+확정되면 그 블록을 <code>css/style.css</code> 최상단의 같은 블록에 옮기고
+<code>python tools/build_design_system.py</code> 로 전체를 재생성합니다.
+</div>
+</body></html>
+""")
+
     print(f"{len(manifest)}개 프리뷰 생성 → {OUT}")
     for m in manifest:
         print(f"  {m['path']}")
