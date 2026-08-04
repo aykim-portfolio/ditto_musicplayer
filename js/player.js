@@ -20,9 +20,17 @@ class PreviewEngine {
     if (this.audio.src !== url) {
       this.audio.src = url;
       await new Promise((resolve, reject) => {
+        // 네트워크가 막히면 미디어 요소는 canplay 도 error 도 안 낸다.
+        // (networkState=LOADING 인 채 stalled 만 반복) 이때를 대비한 한도.
+        const timer = setTimeout(() => {
+          cleanup();
+          this.audio.removeAttribute('src'); // 다음 시도가 다시 로드하도록
+          reject(new Error('LOAD_TIMEOUT'));
+        }, DITTO_CONFIG.LOAD_TIMEOUT_MS);
         const ok = () => { cleanup(); resolve(); };
         const fail = () => { cleanup(); reject(new Error('오디오 로드 실패')); };
         const cleanup = () => {
+          clearTimeout(timer);
           this.audio.removeEventListener('canplay', ok);
           this.audio.removeEventListener('error', fail);
         };
@@ -120,10 +128,29 @@ window.DittoPlayer = (() => {
     return meta.previewUrl;
   }
 
+  /**
+   * 최종 안전망: 아래 대기들은 어느 하나도 스스로 포기하지 않는다.
+   *   - YouTube IFrame API 로드, 플레이어 onReady
+   *   - YT 버퍼링 상태 폴링
+   *   - iTunes 검색 / 미디어 요소 canplay
+   * 하나라도 응답이 없으면 셔틀 잠금이 영영 안 풀리므로 여기서 끊는다.
+   */
+  function withTimeout(promise, ms, label) {
+    let timer;
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(label)), ms);
+      }),
+    ]).finally(() => clearTimeout(timer));
+  }
+
   async function prepareEngine(mode, seekSec) {
     const engine = otherEngine(mode);
-    const src = await resolveSrc(mode);
-    await engine.prepare(src, seekSec);
+    const budget = DITTO_CONFIG.LOAD_TIMEOUT_MS;
+    const src = await withTimeout(resolveSrc(mode), budget, 'LOAD_TIMEOUT');
+    // prepare 안쪽에도 자체 한도가 있어 먼저 끝난다. 이건 그걸 못 빠져나온 경우용.
+    await withTimeout(engine.prepare(src, seekSec), budget + 1000, 'LOAD_TIMEOUT');
     bindEnded(engine);
     return engine;
   }
@@ -233,6 +260,8 @@ window.DittoPlayer = (() => {
       handlers.onError?.('YouTube에서 음원을 찾지 못했어요.');
     } else if (msg === 'NO_PREVIEW') {
       handlers.onError?.('iTunes 미리듣기를 제공하지 않는 곡이에요.');
+    } else if (msg === 'LOAD_TIMEOUT') {
+      handlers.onError?.('음원을 불러오지 못했어요. 네트워크를 확인하고 다시 시도해 주세요.');
     } else {
       handlers.onError?.('재생 중 오류가 발생했어요.');
     }
