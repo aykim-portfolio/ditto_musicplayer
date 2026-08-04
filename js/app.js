@@ -882,8 +882,14 @@
     if (!pair || toMode === mode) return;
 
     glitch(true, toMode, pair);
-    const ok = await DittoPlayer.shuttle(toMode);
-    glitch(false);
+    let ok = false;
+    try {
+      ok = await DittoPlayer.shuttle(toMode);
+    } finally {
+      // 전환이 어떻게 끝나든 오버레이는 반드시 걷는다.
+      // (여기서 놓치면 글리치 화면이 걸린 채 화면이 잠긴다)
+      glitch(false);
+    }
     if (!ok) shuttleEl.value = mode === 'original' ? 0 : 100; // 실패 시 원위치
   });
 

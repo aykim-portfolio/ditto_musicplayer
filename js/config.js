@@ -19,6 +19,11 @@ window.DITTO_CONFIG = {
   // 크로스페이드 길이 (ms) — PRD: 전환 버퍼링 목표 0.8초 이하
   CROSSFADE_MS: 800,
 
+  // 음원 버퍼링 대기 한도 (ms).
+  // 미디어 요소는 네트워크가 막히면 canplay 도 error 도 안 내보내고
+  // stalled 상태로 머문다. 이 시간을 넘기면 실패로 보고 잠금을 푼다.
+  LOAD_TIMEOUT_MS: 8000,
+
   STORAGE_KEYS: {
     YT_KEY: 'ditto_yt_api_key',
     SOURCE: 'ditto_play_source',   // 'preview' | 'youtube'
