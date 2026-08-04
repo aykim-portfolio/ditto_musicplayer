@@ -1,9 +1,58 @@
 /* ============================================================
    ditto — 세대 공감 오디오 플레이어
-   듀얼 테마: [data-theme="modern"] 민트×오렌지 미니멀
-             [data-theme="retro"]  Y2K 카세트테이프 아날로그
+   듀얼 테마: [data-theme="modern"] 민트×오렌지 미니멀 (리메이크)
+             [data-theme="retro"]  크림×차콜×주황 산업 하드웨어 (원곡, EP-133 K.O. II 참조)
    캔버스: 390 × 985
    ============================================================ */
+
+/* Paperlogy — 구글 폰트에 없어 눈누 배포본(jsdelivr)에서 직접 받는다.
+   MODERN(리메이크) 테마의 강조용 서체. */
+@font-face {
+  font-family: "Paperlogy";
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Paperlogy";
+  font-weight: 600;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Paperlogy";
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2") format("woff2");
+}
+
+/* Galmuri11 — RETRO(원곡) 테마의 강조용 비트맵 서체.
+   원래 지정은 "둥근모꼴+ Fixedsys" 였으나 공개 CDN 배포본이 없어 같은 계열의
+   한글 픽셀 폰트로 대체했다. 실제 파일을 확보하면 아래 두 @font-face 의 src 와
+   --font-display 의 첫 패밀리명만 바꾸면 된다. (OFL-1.1) */
+@font-face {
+  font-family: "Galmuri11";
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/Galmuri11.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Galmuri11";
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/Galmuri11-Bold.woff2") format("woff2");
+}
+
+/* 가나초콜릿체 — RETRO 포인트 서체. 공개 CDN 배포본이 없어 시스템 설치본을 먼저 찾는다.
+   설치돼 있지 않으면 --font-point 의 다음 후보(Galmuri11)로 조용히 넘어간다.
+   셀프호스트하려면 fonts/README.md 를 따라 파일을 넣고 아래 url() 줄의 주석을 풀 것. */
+@font-face {
+  font-family: "GanaChocolate";
+  font-weight: 400;
+  font-display: swap;
+  src: local("가나초콜릿"), local("가나초콜릿체"), local("Gana Chocolate"), local("GanaChocolate");
+  /* src: local("가나초콜릿"), url("../fonts/GanaChocolate.woff2") format("woff2"); */
+}
 
 :root {
   /* 공통 토큰 */
@@ -14,11 +63,21 @@
   --gap-v: 16px;
   --nav-h: 64px;
   --header-h: 52px;
+  --cc-w: 236px;          /* 캐러셀 카드 폭 — 좌우 패딩 계산에 함께 쓰인다 */
+  --cc-gap: 14px;
   --font-sans: "IBM Plex Sans KR", -apple-system, sans-serif;
   --font-mono: "Space Mono", ui-monospace, monospace;
+  /* 강조(제목·수치)와 본문을 나눠 쓴다. 기본값은 기존 서체 — RETRO 는 이대로 간다. */
+  --font-display: var(--font-sans);
+  --font-body: var(--font-sans);
 }
 
 [data-theme="modern"] {
+  /* 리메이크 = 모던. 강조는 Paperlogy, 본문은 Open Sans.
+     Open Sans 에는 한글 글리프가 없어 한글 본문은 IBM Plex Sans KR 로 떨어진다. */
+  --font-display: "Paperlogy", "IBM Plex Sans KR", -apple-system, sans-serif;
+  --font-body: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
+
   --color-bg-primary: #BFE3D0;          /* 민트 그린 */
   --color-bg-deep: #A9D6C0;
   --color-card-bg: #1F2D27;             /* 다크 카드 패널 */
@@ -32,18 +91,32 @@
   --grain-opacity: 0;
 }
 
+/* RETRO = 원곡. EP-133 K.O. II 풍의 산업 디자인 —
+   크림 바디 + 차콜 디스플레이 모듈 + 주황 액센트. 강조는 픽셀 서체, 본문은 Open Sans. */
 [data-theme="retro"] {
-  --color-bg-primary: #E8D5A3;          /* 빛바랜 베이지 */
-  --color-bg-deep: #D9C188;
-  --color-card-bg: #3B2C20;             /* 카세트 브라운 */
-  --color-card-bg-2: #4A382A;
-  --color-nav-bg: #2A1F16;
-  --color-text-primary: #3B2C20;
-  --color-text-on-card: #F2E6C9;
-  --color-text-muted: #8A7351;
-  --color-progress-track: rgba(242, 230, 201, 0.22);
-  --color-progress-fill: #E0552C;
-  --grain-opacity: 0.35;
+  --font-display: "Galmuri11", "IBM Plex Sans KR", monospace;
+  --font-body: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
+  /* 포인트 서체는 화면당 제목 하나에만 — 남발하면 포인트가 아니게 된다 */
+  --font-point: "GanaChocolate", "Galmuri11", "IBM Plex Sans KR", sans-serif;
+
+  --color-accent: #F04E23;              /* SAMPLE 노브 주황 */
+  --color-bg-primary: #EDEBE5;          /* 크림 바디 */
+  --color-bg-deep: #DCD9D1;
+  --color-card-bg: #1F1F1E;             /* 디스플레이 모듈 차콜 */
+  --color-card-bg-2: #2C2C2A;
+  --color-nav-bg: #171716;
+  --color-text-primary: #1A1A18;
+  --color-text-on-card: #EDEBE5;
+  --color-text-muted: #8A887F;
+  --color-progress-track: rgba(237, 235, 229, 0.18);
+  --color-progress-fill: #F04E23;
+  --grain-opacity: 0.06;                /* 산업 디자인이라 노이즈는 거의 걷어낸다 */
+
+  /* 하드웨어 디테일 */
+  --hw-panel: #D9D7D0;                  /* 버튼·패널 회색 */
+  --hw-line: #C4C1B8;                   /* 실선 구획 */
+  --hw-led: #E03A2F;                    /* 표시등 빨강 */
+  --radius-card: 6px;                   /* 각진 기구물 느낌 */
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -51,13 +124,27 @@
 html, body {
   height: 100%;
   background: #2c2c2c;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   display: flex;
   justify-content: center;
 }
 
 .mono { font-family: var(--font-mono); letter-spacing: 0.02em; }
 .hidden { display: none !important; }
+
+/* 강조 서체를 쓰는 자리: 로고·제목·수치·주요 버튼.
+   본문(설명·부제·입력)은 body 에서 내려오는 --font-body 를 그대로 쓴다. */
+.logo,
+.section-title,
+.pair-title,
+.cc-title,
+.cc-year,
+.song-title,
+.result-title,
+.modal-card h3,
+.btn {
+  font-family: var(--font-display);
+}
 
 /* ===== Icons (Lucide) ===== */
 .lucide { display: inline-block; vertical-align: -2px; }
@@ -133,6 +220,9 @@ html, body {
   scrollbar-width: none;
 }
 .screen::-webkit-scrollbar { display: none; }
+/* 화면은 스크롤되는 컨테이너다. 세로가 모자라면 내용을 눌러 맞추는 게 아니라 넘쳐서 스크롤돼야 한다.
+   (이게 없으면 짧은 뷰포트에서 aspect-ratio 를 준 아트워크까지 세로로 찌그러진다) */
+.screen > * { flex-shrink: 0; }
 
 /* ===== Discovery Badge ===== */
 .badge-row {
@@ -140,72 +230,11 @@ html, body {
   align-items: center;
   justify-content: space-between;
 }
-.badge-discovery {
-  margin-left: auto;
-  background: var(--color-accent);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-family: var(--font-mono);
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: transform .1s ease, filter .15s ease;
-}
-.badge-discovery:hover { filter: brightness(1.08); }
-.badge-discovery:active { transform: scale(.95); }
-/* 주사위를 굴린 직후 살짝 튀어오르는 피드백 */
-.badge-discovery.rolling { animation: discover-pop .45s ease; }
-@keyframes discover-pop {
-  40% { transform: scale(1.09) rotate(-3deg); }
-}
 .hero-caption {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-primary);
   opacity: .75;
-}
-
-/* ===== Hero Card ===== */
-.hero-card {
-  background: var(--color-card-bg);
-  border-radius: var(--radius-card);
-  padding: 16px;
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  color: var(--color-text-on-card);
-  transition: background-color .5s ease;
-}
-.hero-art {
-  width: 84px; height: 84px;
-  flex: 0 0 84px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--color-accent), #8a3d1c);
-  background-size: cover;
-  background-position: center;
-}
-.hero-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-.hero-sub { font-size: 12px; opacity: .7; line-height: 1.5; margin-bottom: 10px; }
-.hero-play {
-  border: none;
-  background: var(--color-accent);
-  color: #fff;
-  font-weight: 600;
-  font-size: 12px;
-  padding: 8px 14px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 
 /* ===== View Toggle (RETRO / grid / MODERN) ===== */
@@ -294,6 +323,7 @@ html, body {
 .pair-art {
   width: 100%;
   aspect-ratio: 1;
+  flex: 0 0 auto;        /* 격자에서도 정사각 유지 (리스트는 아래에서 56px 고정) */
   border-radius: 8px;
   background: var(--color-card-bg-2);
   background-size: cover;
@@ -323,6 +353,158 @@ html, body {
   align-items: center;
 }
 
+/* ===== Carousel ===== *
+   리메이크(MODERN) 기본 레이아웃. 다크 카드 패널을 걷어내고 아트워크만
+   띄워서 화면을 넓게 쓴다. 화면 좌우 패딩을 상쇄해 캔버스 끝까지 흐르게 하고,
+   양옆 padding = (390 - 카드폭)/2 로 첫/마지막 카드도 중앙에 스냅되게 한다. */
+.pair-list.carousel {
+  display: flex;
+  gap: var(--cc-gap);
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  margin-inline: calc(-1 * var(--pad-screen));
+  padding: 6px calc((390px - var(--cc-w)) / 2) 4px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  /* 마우스로 끌어 넘길 수 있다는 신호 + 드래그 중 텍스트 선택 방지 */
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.pair-list.carousel::-webkit-scrollbar { display: none; }
+.pair-list.carousel.dragging { cursor: grabbing; }
+/* 끄는 동안 이미지가 브라우저 기본 드래그로 딸려오지 않게 */
+.pair-list.carousel.dragging * { pointer-events: none; }
+
+.carousel-card {
+  flex: 0 0 var(--cc-w);
+  align-self: flex-start;   /* 행 높이에 맞춰 늘어나지 않게 — 카드는 내용만큼만 */
+  scroll-snap-align: center;
+  background: transparent;
+  padding: 0;
+  border: none;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transform: scale(.82);
+  opacity: .4;
+  transition: transform .38s cubic-bezier(.22,.61,.36,1), opacity .3s ease;
+}
+.carousel-card.is-active { transform: scale(1); opacity: 1; }
+.carousel-card:hover { transform: scale(.85); }
+.carousel-card.is-active:hover { transform: scale(1.015); }
+
+.cc-art {
+  width: 100%;
+  aspect-ratio: 1;
+  flex: 0 0 auto;        /* 아트워크는 정사각을 지킨다 — 세로로 눌리지 않게 */
+  border-radius: 18px;
+  background: var(--color-card-bg-2);
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,.16);
+  transition: box-shadow .38s ease;
+}
+.carousel-card.is-active .cc-art {
+  box-shadow: 0 18px 38px rgba(0,0,0,.32), 0 0 0 1px rgba(255,255,255,.14) inset;
+}
+/* 아트워크 하단을 어둡게 깔아 연도 뱃지 가독성 확보 */
+.cc-art::after {
+  content: "";
+  position: absolute; inset: auto 0 0 0; height: 42%;
+  background: linear-gradient(transparent, rgba(0,0,0,.5));
+  opacity: 0;
+  transition: opacity .38s ease;
+}
+.carousel-card.is-active .cc-art::after { opacity: 1; }
+
+.cc-year {
+  position: absolute;
+  left: 12px; bottom: 11px;
+  z-index: 1;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0,0,0,.6);
+}
+.cc-badge {
+  position: absolute;
+  right: 10px; top: 10px;
+  z-index: 1;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  color: var(--color-beige);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .12em;
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+.cc-meta { display: flex; align-items: center; gap: 10px; padding: 0 2px; }
+.cc-text { min-width: 0; flex: 1; }
+.cc-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cc-sub {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  opacity: .6;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cc-play {
+  flex: 0 0 40px;
+  width: 40px; height: 40px;
+  border: none; border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transform: scale(.6);
+  transition: opacity .3s ease, transform .3s cubic-bezier(.22,.61,.36,1);
+  pointer-events: none;
+}
+.carousel-card.is-active .cc-play { opacity: 1; transform: scale(1); pointer-events: auto; }
+.cc-play:active { transform: scale(.9); }
+
+/* 진행 인디케이터: 활성 항목만 알약 형태로 늘어난다 */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: -6px;
+}
+.carousel-dots button {
+  border: none;
+  padding: 0;
+  width: 6px; height: 6px;
+  border-radius: 3px;
+  background: var(--color-text-primary);
+  opacity: .22;
+  cursor: pointer;
+  transition: width .3s cubic-bezier(.22,.61,.36,1), opacity .3s ease, background-color .3s ease;
+}
+.carousel-dots button.on { width: 18px; opacity: 1; background: var(--color-accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pair-list.carousel { scroll-behavior: auto; }
+  .carousel-card, .cc-art, .cc-play, .carousel-dots button { transition: none; }
+}
+
 /* ===== Search ===== */
 .search-box { display: flex; gap: 8px; }
 .search-box input {
@@ -331,7 +513,7 @@ html, body {
   border-radius: 20px;
   padding: 12px 16px;
   font-size: 14px;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   background: rgba(255,255,255,.75);
   color: #1c1c1c;
   outline: none;
@@ -344,7 +526,7 @@ html, body {
   color: #fff;
   font-weight: 600;
   cursor: pointer;
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
 }
 .search-hint {
   font-size: 11px;
@@ -692,7 +874,7 @@ html, body {
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 13px;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   background: #fff;
   outline: none;
 }
@@ -705,7 +887,6 @@ html, body {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  font-family: var(--font-sans);
 }
 .btn.primary { background: var(--color-accent); color: #fff; }
 .btn.ghost { background: transparent; color: #6b6352; }
@@ -742,3 +923,904 @@ html, body {
   animation: shimmer 1.2s infinite;
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ============================================================
+   RETRO 하드웨어 룩 — EP-133 K.O. II 참조
+   크림 바디에 차콜 디스플레이 모듈을 얹고, 조작부는 납작한 회색 패널 +
+   주황 액센트로 정리한다. 이 블록은 전부 [data-theme="retro"] 한정.
+   ============================================================ */
+
+/* 픽셀 서체는 안티에일리어싱을 끄고 정수 크기로 써야 도트가 살아난다 */
+[data-theme="retro"] .logo,
+[data-theme="retro"] .pair-title,
+[data-theme="retro"] .cc-title,
+[data-theme="retro"] .cc-year,
+[data-theme="retro"] .song-title,
+[data-theme="retro"] .result-title,
+[data-theme="retro"] .modal-card h3 {
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+  letter-spacing: 0;
+}
+[data-theme="retro"] .logo { font-size: 20px; }
+[data-theme="retro"] .cc-title { font-size: 15px; }
+[data-theme="retro"] .cc-year { font-size: 18px; }
+
+/* 포인트 서체는 딱 두 자리 — 화면마다 제목 하나씩만.
+   홈의 히어로 문구와 라이브러리 섹션 제목. 카드·버튼·라벨에는 절대 쓰지 않는다. */
+[data-theme="retro"] .section-title {
+  font-family: var(--font-point);
+  letter-spacing: .01em;
+}
+
+/* 바디: 하이라이트 그라데이션을 걷어내 납작한 기구물로 */
+[data-theme="retro"] .phone {
+  background-image: none;
+  background: var(--color-bg-primary);
+}
+
+/* 상단 탭 바 (OUTPUT / INPUT / SYNC …) 처럼 각지게 */
+[data-theme="retro"] .view-toggle {
+  background: var(--hw-panel);
+  border-radius: 4px;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--hw-line);
+}
+[data-theme="retro"] .vt-btn {
+  border-radius: 2px;
+  color: var(--color-text-primary);
+  opacity: .5;
+  font-size: 10px;
+}
+[data-theme="retro"] .vt-btn.active {
+  background: var(--color-accent);
+  color: #fff;
+  opacity: 1;
+}
+
+/* 패널 라벨: 기기 실크스크린처럼 작고 넓게 */
+[data-theme="retro"] .list-caption,
+[data-theme="retro"] .hero-caption {
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  font-size: 9px;
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+/* 라벨 옆 표시등 */
+[data-theme="retro"] .list-caption::before {
+  content: "";
+  display: inline-block;
+  width: 5px; height: 5px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--hw-led);
+  vertical-align: middle;
+}
+
+[data-theme="retro"] .layout-btn {
+  border-radius: 3px;
+  border: 1px solid var(--hw-line);
+  background: var(--hw-panel);
+  opacity: 1;
+  color: var(--color-text-primary);
+}
+
+/* 디스플레이 모듈: 차콜 패널 + 얇은 테두리 */
+[data-theme="retro"] .pair-card,
+[data-theme="retro"] .album-card {
+  border-radius: var(--radius-card);
+  border: 1px solid #000;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+[data-theme="retro"] .pair-art,
+[data-theme="retro"] .cc-art,
+[data-theme="retro"] .album-art { border-radius: 4px; }
+
+/* 주요 버튼: RECORD 버튼처럼 각진 주황 */
+[data-theme="retro"] .btn.primary,
+[data-theme="retro"] .search-box button {
+  border-radius: 3px;
+  letter-spacing: .04em;
+}
+[data-theme="retro"] .cc-play {
+  border-radius: 4px;
+}
+
+/* 재생 컨트롤: 기구 버튼처럼 회색 패널 위에 */
+[data-theme="retro"] .ctrl-btn {
+  border-radius: 4px;
+  background: var(--hw-panel);
+  color: var(--color-text-primary);
+  border: 1px solid var(--hw-line);
+}
+[data-theme="retro"] .ctrl-btn.play {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: #C33C18;
+}
+
+/* 캐러셀 뱃지 = 기기 각인 */
+[data-theme="retro"] .cc-badge {
+  border-radius: 2px;
+  background: var(--color-accent);
+  color: #fff;
+  backdrop-filter: none;
+}
+
+/* ============================================================
+   원곡(RETRO) 레이아웃 4종 + 양쪽(TWIN)
+   tweak 버튼(#btn-layout)으로 돌려가며 고른다.
+   RACK=EP-133 패드 / WINAMP=클래식 플레이리스트 / TUNER=하이파이 다이얼 / DIAL=회전 휠
+   ============================================================ */
+
+.pair-list.rack,
+.pair-list.winamp,
+.pair-list.dial,
+.pair-list.twin { display: block; }
+
+/* ===== RACK — EP-133 패드 그리드 ===== */
+.pair-list.rack {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+}
+.rack-pad {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--color-card-bg);
+  border: 1px solid #000;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.07);
+  transition: transform .09s ease, box-shadow .09s ease;
+}
+.rack-pad:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.07);
+}
+/* 아트워크는 패드 질감으로만 깔고 앞의 글자를 살린다 */
+.rp-art {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: .34;
+  filter: grayscale(.5) contrast(1.05);
+}
+.rack-pad::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.82));
+}
+.rp-led {
+  position: absolute; top: 7px; left: 7px; z-index: 2;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--hw-led, #E03A2F);
+  box-shadow: 0 0 5px rgba(224,58,47,.85);
+}
+.rp-idx {
+  position: absolute; top: 6px; right: 8px; z-index: 2;
+  font-size: 9px;
+  color: rgba(237,235,229,.5);
+}
+.rp-meta {
+  position: absolute; left: 8px; right: 8px; bottom: 7px; z-index: 2;
+}
+.rp-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #EDEBE5;
+  line-height: 1.25;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rp-year {
+  font-size: 10px;
+  color: var(--color-accent);
+  margin-top: 1px;
+}
+
+/* ===== WINAMP — 스킨 전체 재현 =====
+   스킨 복각이라 테마 토큰을 쓰지 않고 90년대 색을 그대로 박는다. */
+.pair-list.winamp {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  --wa-chrome: #3E4A5B;
+  --wa-chrome-hi: #59667A;
+  --wa-chrome-lo: #2A3340;
+  --wa-green: #22E03A;
+  --wa-lcd: #0B0F0C;
+  --wa-yellow: #E4D34A;
+}
+.wa-win {
+  background: var(--wa-chrome);
+  border: 1px solid var(--wa-chrome-lo);
+  border-top-color: var(--wa-chrome-hi);
+  border-left-color: var(--wa-chrome-hi);
+  box-shadow: 0 1px 3px rgba(0,0,0,.4);
+  user-select: none;
+}
+
+/* --- 타이틀바: 가운데 텍스트 양옆으로 가는 줄무늬 --- */
+.wa-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 15px;
+  padding: 0 3px;
+  background: linear-gradient(180deg, #4E6E9E, #2E4468);
+  border-bottom: 1px solid var(--wa-chrome-lo);
+}
+.wa-title-line {
+  flex: 1;
+  height: 7px;
+  background: repeating-linear-gradient(180deg,
+    rgba(255,255,255,.42) 0 1px, transparent 1px 2px);
+}
+.wa-title-text {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: #DDE6F2;
+}
+.wa-title-btns {
+  flex: 0 0 auto;
+  font-size: 7px;
+  letter-spacing: .12em;
+  color: #C2CEDE;
+}
+
+/* ================= ① 메인 플레이어 ================= */
+.wa-main-body { padding: 5px; display: flex; flex-direction: column; gap: 5px; }
+
+.wa-lcd {
+  display: flex;
+  gap: 6px;
+  background: var(--wa-lcd);
+  border: 1px solid #000;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.07);
+  padding: 4px 5px;
+}
+.wa-lcd-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-family: var(--font-mono);
+  font-size: 6px;
+  line-height: 1.15;
+  color: var(--wa-green);
+  opacity: .75;
+}
+.wa-kbps { margin-top: 2px; opacity: .8; }
+
+.wa-clock { display: flex; align-items: flex-start; gap: 3px; }
+.wa-play-ico { color: var(--wa-green); font-size: 9px; line-height: 1; margin-top: 4px; }
+.wa-time-big {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--wa-green);
+  letter-spacing: .02em;
+  text-shadow: 0 0 6px rgba(34,224,58,.45);
+}
+
+.wa-lcd-right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+/* 곡 제목은 창보다 길면 흘러간다 */
+.wa-marquee { overflow: hidden; white-space: nowrap; }
+.wa-marquee span {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--wa-green);
+  animation: wa-scroll 13s linear infinite;
+}
+@keyframes wa-scroll {
+  0%, 12% { transform: translateX(0); }
+  88%, 100% { transform: translateX(calc(-100% + 150px)); }
+}
+.wa-rates {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  color: #1F9C2C;
+}
+.wa-num {
+  background: #14351A;
+  color: var(--wa-green);
+  padding: 0 2px;
+  font-weight: 700;
+}
+.wa-chan { margin-left: auto; opacity: .55; }
+.wa-chan em { font-style: normal; color: var(--wa-green); opacity: 1; }
+
+/* 스펙트럼 애널라이저 */
+.wa-viz { display: flex; align-items: flex-end; gap: 1px; height: 17px; }
+.wa-viz i {
+  flex: 1;
+  height: var(--h);
+  background: linear-gradient(180deg, #9BF06A, #22E03A 45%, #0E8A22);
+  animation: wa-bounce 780ms ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+@keyframes wa-bounce { to { height: 22%; } }
+
+/* 볼륨·밸런스 슬라이더 + EQ/PL 토글 */
+.wa-knobs { display: flex; align-items: center; gap: 5px; }
+.wa-slider {
+  position: relative;
+  height: 9px;
+  background: linear-gradient(180deg, var(--wa-chrome-lo), #47535F);
+  border: 1px solid #1E252E;
+}
+.wa-vol { flex: 1.6; }
+.wa-bal { flex: 1; }
+.wa-slider i {
+  position: absolute; top: -1px; bottom: -1px;
+  width: 11px;
+  background: linear-gradient(180deg, #8E9AAA, #5A6572);
+  border: 1px solid #222A34;
+}
+.wa-vol i { left: 62%; }
+.wa-bal i { left: 44%; }
+
+.wa-tog {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: .06em;
+  color: #97A4B4;
+  background: var(--wa-chrome-lo);
+  border: 1px solid #1E252E;
+  border-top-color: var(--wa-chrome-hi);
+  padding: 2px 5px;
+  cursor: pointer;
+}
+.wa-tog.on { color: var(--wa-green); }
+
+/* 재생 위치 바 */
+.wa-seek {
+  position: relative;
+  height: 10px;
+  background: linear-gradient(180deg, #222A34, #3A4450);
+  border: 1px solid #1B222A;
+}
+.wa-seek i {
+  position: absolute; top: -1px; bottom: -1px; left: 18%;
+  width: 28px;
+  background: linear-gradient(180deg, #8E9AAA, #5A6572);
+  border: 1px solid #222A34;
+}
+
+.wa-transport { display: flex; align-items: center; gap: 2px; }
+.wa-tb {
+  flex: 0 0 auto;
+  min-width: 22px;
+  height: 17px;
+  font-size: 8px;
+  color: #DCE4EE;
+  background: linear-gradient(180deg, #59667A, #3A4553);
+  border: 1px solid #1E252E;
+  border-top-color: #6E7C90;
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
+.wa-tb:active { background: linear-gradient(180deg, #3A4553, #59667A); }
+.wa-eject { margin-right: 4px; }
+.wa-transport .wa-tog:last-child { margin-left: auto; }
+
+/* ================= ② 이퀄라이저 ================= */
+.wa-eq-body { padding: 5px; }
+.wa-eq-head { display: flex; align-items: center; gap: 4px; margin-bottom: 5px; }
+.wa-eq-curve {
+  flex: 1;
+  height: 9px;
+  background: repeating-linear-gradient(90deg,
+    rgba(34,224,58,.5) 0 1px, transparent 1px 7px);
+  border-bottom: 1px solid rgba(34,224,58,.35);
+}
+.wa-presets { margin-left: auto; }
+
+.wa-eq-graph {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  background: var(--wa-lcd);
+  border: 1px solid #000;
+  padding: 5px 4px 3px;
+}
+.wa-eq-scale {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 74px;
+  margin-right: 2px;
+  font-family: var(--font-mono);
+  font-size: 5.5px;
+  color: var(--wa-green);
+  opacity: .75;
+}
+.wa-eq-div { width: 1px; align-self: stretch; background: rgba(34,224,58,.22); margin: 0 2px; }
+
+.wa-eq-band { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
+.wa-eq-slider {
+  position: relative;
+  width: 9px;
+  height: 66px;
+  background: linear-gradient(90deg, transparent 3px, #17301C 3px 6px, transparent 6px);
+  border-bottom: 1px solid rgba(34,224,58,.25);
+}
+.wa-eq-slider i {
+  position: absolute; left: -1px; right: -1px;
+  height: 8px;
+  background: linear-gradient(180deg, #F2E67A, var(--wa-yellow) 55%, #A89A22);
+  border: 1px solid #6B6115;
+}
+.wa-eq-hz {
+  font-family: var(--font-mono);
+  font-size: 5.5px;
+  color: var(--wa-green);
+  opacity: .8;
+  white-space: nowrap;
+}
+.wa-preamp .wa-eq-hz { font-size: 5px; }
+
+/* ================= ③ 플레이리스트 ================= */
+.wa-pl-body {
+  background: #000;
+  border: 1px solid #000;
+  padding: 3px 0;
+  max-height: 176px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #59667A #0A0A0A;
+}
+.wa-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.55;
+  color: var(--wa-green);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wa-row:hover { background: #0E2412; }
+.wa-row.on { background: #0027C4; color: #fff; }   /* 선택행 = 파랑 반전 */
+.wa-idx { flex: 0 0 16px; text-align: right; }
+.wa-name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.wa-dur { flex: 0 0 auto; }
+
+.wa-pl-foot {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 4px;
+  background: var(--wa-chrome);
+}
+.wa-pf {
+  font-family: var(--font-mono);
+  font-size: 6.5px;
+  line-height: 1.1;
+  text-align: center;
+  color: #C6D0DE;
+  background: linear-gradient(180deg, #59667A, #3A4553);
+  border: 1px solid #1E252E;
+  border-top-color: #6E7C90;
+  padding: 3px 4px;
+  cursor: pointer;
+}
+.wa-listopts { margin-left: 2px; }
+.wa-pl-total {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--wa-green);
+  background: var(--wa-lcd);
+  border: 1px solid #000;
+  padding: 2px 5px;
+}
+.wa-pl-mini {
+  font-size: 7px;
+  letter-spacing: .06em;
+  color: #C6D0DE;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wa-viz i, .wa-marquee span { animation: none; }
+}
+
+/* ===== TUNER — 하이파이 주파수 다이얼 ===== */
+.pair-list.tuner {
+  /* 중앙 고정 바늘. 스크롤 컨테이너의 background 는 내용과 함께 움직이지 않는다. */
+  background-image: linear-gradient(var(--color-accent), var(--color-accent));
+  background-size: 2px 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding-block: 10px 6px;
+}
+.tn-station {
+  flex: 0 0 var(--cc-w);
+  align-self: flex-start;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  opacity: .38;
+  transform: scale(.9);
+  transition: opacity .3s ease, transform .3s cubic-bezier(.22,.61,.36,1);
+}
+.tn-station.is-active { opacity: 1; transform: scale(1); }
+.tn-freq {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: .04em;
+}
+/* 주파수 눈금 */
+.tn-scale {
+  width: 100%; height: 16px;
+  background-image: repeating-linear-gradient(90deg,
+    var(--color-text-primary) 0 1px, transparent 1px 12px);
+  opacity: .35;
+}
+.tn-station.is-active .tn-scale { opacity: .7; }
+.tn-art {
+  width: 118px; height: 118px;
+  flex: 0 0 auto;
+  border-radius: 4px;
+  background: var(--color-card-bg-2);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(0,0,0,.35);
+}
+.tn-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+}
+.tn-artist { font-size: 11px; color: var(--color-text-primary); opacity: .6; }
+
+/* ===== DIAL — 부채꼴 회전 휠 ===== */
+.pair-list.dial {
+  height: 330px;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  padding-block: 132px;
+  mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+  -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+}
+.pair-list.dial::-webkit-scrollbar { display: none; }
+.dl-item {
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 66px;
+  padding: 0 10px 0 4px;
+  cursor: pointer;
+  transform-origin: -170px 50%;      /* 왼쪽 바깥을 축으로 부채처럼 돈다 */
+  will-change: transform, opacity;
+}
+.dl-tick {
+  flex: 0 0 3px;
+  height: 26px;
+  background: var(--color-text-primary);
+  opacity: .3;
+}
+.dl-item.is-active .dl-tick { background: var(--color-accent); opacity: 1; height: 40px; }
+.dl-art {
+  flex: 0 0 48px;
+  width: 48px; height: 48px;
+  border-radius: 4px;
+  background: var(--color-card-bg-2);
+  background-size: cover;
+  background-position: center;
+}
+.dl-text { flex: 1; min-width: 0; }
+.dl-title {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--color-text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dl-sub {
+  font-size: 11px;
+  color: var(--color-text-primary);
+  opacity: .55;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dl-year {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  opacity: .45;
+}
+.dl-item.is-active .dl-year { color: var(--color-accent); opacity: 1; font-weight: 700; }
+
+/* ===== TWIN — 원곡·리메이크 두 줄 맞물림 ===== */
+.twin-side { position: relative; }
+.twin-side + .twin-side { margin-top: 14px; }
+.tw-label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: .2em;
+  color: var(--color-text-primary);
+  opacity: .5;
+  margin-bottom: 5px;
+  padding-left: 2px;
+}
+.twin-side.remake .tw-label { color: var(--color-accent); opacity: 1; }
+.twin-rail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  margin-inline: calc(-1 * var(--pad-screen));
+  padding: 2px calc((390px - 150px) / 2) 6px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.twin-rail::-webkit-scrollbar { display: none; }
+.twin-rail.dragging { cursor: grabbing; }
+.twin-rail.dragging * { pointer-events: none; }
+.tw-card {
+  position: relative;
+  flex: 0 0 150px;
+  align-self: flex-start;
+  scroll-snap-align: center;
+  cursor: pointer;
+  opacity: .4;
+  transform: scale(.88);
+  transition: opacity .3s ease, transform .34s cubic-bezier(.22,.61,.36,1);
+}
+.tw-card.is-active { opacity: 1; transform: scale(1); }
+.tw-art {
+  width: 150px; height: 150px;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  background: var(--color-card-bg-2);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,.18);
+}
+.tw-card.is-active .tw-art { box-shadow: 0 10px 22px rgba(0,0,0,.3); }
+.tw-title {
+  margin-top: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--color-text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tw-sub {
+  font-size: 11px;
+  color: var(--color-text-primary);
+  opacity: .6;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tw-year {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: rgba(0,0,0,.62);
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+/* 두 줄이 같은 곡을 가리키고 있다는 표시 */
+.twin-side.original .tw-card.is-active .tw-art { outline: 2px solid var(--color-text-primary); outline-offset: 2px; }
+.twin-side.remake .tw-card.is-active .tw-art { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tn-station, .tw-card, .dl-item { transition: none; }
+}
+
+/* ============================================================
+   WINAMP 전면 스킨 — 목록뿐 아니라 화면 전체를 덮는다.
+   applyLayout() 이 <html data-skin="winamp"> 를 걸고 뺀다.
+   테마 토큰 자체를 갈아끼워 헤더·여백·하단바·다른 화면까지 한 번에 따라오게 한다.
+   (테마 블록보다 뒤에 와야 같은 특정도에서 이긴다)
+   ============================================================ */
+[data-skin="winamp"] {
+  --color-bg-primary: #232A33;          /* 창이 얹히는 바탕 */
+  --color-bg-deep: #1A1F26;
+  --color-card-bg: #3E4A5B;
+  --color-card-bg-2: #2A3340;
+  --color-nav-bg: #1A1F26;
+  --color-text-primary: #C6D0DE;
+  --color-text-on-card: #DDE6F2;
+  --color-text-muted: #7E8B9C;
+  --color-accent: #22E03A;
+  --color-progress-track: rgba(198,208,222,.18);
+  --color-progress-fill: #22E03A;
+  --grain-opacity: 0;
+  --radius-card: 0px;                   /* 90년대 창에는 둥근 모서리가 없다 */
+}
+
+/* 바탕: 하이라이트 그라데이션을 걷고 납작한 데스크톱으로 */
+[data-skin="winamp"] .phone {
+  background: var(--color-bg-primary);
+  background-image: none;
+}
+
+/* ----- 헤더 = 창 제목 표시줄 ----- */
+[data-skin="winamp"] .header {
+  position: relative;
+  background: linear-gradient(180deg, #4E6E9E, #2E4468);
+  border-bottom: 1px solid #1B2432;
+}
+/* 제목 양옆으로 뻗는 가로 줄무늬 */
+[data-skin="winamp"] .header::before {
+  content: "";
+  position: absolute;
+  left: 46px; right: 46px; top: 50%;
+  height: 9px;
+  transform: translateY(-50%);
+  background: repeating-linear-gradient(180deg,
+    rgba(255,255,255,.42) 0 1px, transparent 1px 2px);
+}
+[data-skin="winamp"] .logo {
+  z-index: 1;                            /* 줄무늬를 가리며 글자만 남는다 */
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  color: #DDE6F2;
+  background: linear-gradient(180deg, #4E6E9E, #2E4468);
+  padding: 0 10px;
+}
+[data-skin="winamp"] .logo-dot { color: #22E03A; }
+
+/* 헤더 아이콘 버튼 = 크롬 사각 버튼 */
+[data-skin="winamp"] .icon-btn {
+  z-index: 1;
+  width: 22px; height: 17px;
+  border-radius: 0;
+  color: #DCE4EE;
+  background: linear-gradient(180deg, #59667A, #3A4553);
+  border: 1px solid #1E252E;
+  border-top-color: #6E7C90;
+}
+[data-skin="winamp"] .icon-btn:hover { background: linear-gradient(180deg, #6B7A90, #47535F); }
+[data-skin="winamp"] .icon-btn:active { background: linear-gradient(180deg, #3A4553, #59667A); }
+
+/* ----- 캡션 = 초록 LCD 글자 ----- */
+[data-skin="winamp"] .hero-caption,
+[data-skin="winamp"] .list-caption {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .16em;
+  color: #22E03A;
+  opacity: 1;
+}
+/* 레트로가 걸어둔 빨간 표시등을 초록으로 */
+[data-skin="winamp"] .list-caption::before {
+  background: #22E03A;
+  box-shadow: 0 0 4px rgba(34,224,58,.8);
+}
+
+/* ----- 시대 토글 = 크롬 버튼 묶음 ----- */
+[data-skin="winamp"] .view-toggle {
+  background: #3E4A5B;
+  border: 1px solid #1E252E;
+  border-top-color: #59667A;
+  border-radius: 0;
+  padding: 3px;
+  gap: 3px;
+}
+[data-skin="winamp"] .vt-btn {
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .1em;
+  padding: 4px 11px;
+  opacity: 1;
+  color: #97A4B4;
+  background: linear-gradient(180deg, #59667A, #3A4553);
+  border: 1px solid #1E252E;
+  border-top-color: #6E7C90;
+}
+[data-skin="winamp"] .vt-btn.active {
+  color: #22E03A;
+  background: #0B0F0C;
+  border-color: #000;
+  text-shadow: 0 0 5px rgba(34,224,58,.5);
+}
+
+/* ----- tweak 버튼 = 크롬 사각 버튼 ----- */
+[data-skin="winamp"] .layout-btn {
+  width: 26px; height: 22px;
+  border-radius: 0;
+  opacity: 1;
+  color: #DCE4EE;
+  background: linear-gradient(180deg, #59667A, #3A4553);
+  border: 1px solid #1E252E;
+  border-top-color: #6E7C90;
+}
+
+/* ----- 하단 내비 = 크롬 바 ----- */
+[data-skin="winamp"] .bottom-nav {
+  background: linear-gradient(180deg, #3E4A5B, #2A3340);
+  border-top: 1px solid #59667A;
+}
+[data-skin="winamp"] .nav-btn {
+  color: #8E9BAB;
+  font-size: 9px;
+  letter-spacing: .1em;
+}
+[data-skin="winamp"] .nav-btn.active {
+  color: #22E03A;
+  text-shadow: 0 0 5px rgba(34,224,58,.5);
+}
+
+/* ----- 나머지 화면(검색·라이브러리·플레이어)도 같은 옷을 입는다 ----- */
+[data-skin="winamp"] .search-box input,
+[data-skin="winamp"] .modal-card input,
+[data-skin="winamp"] .modal-card select {
+  border-radius: 0;
+  background: #0B0F0C;
+  color: #22E03A;
+  border: 1px solid #000;
+  font-family: var(--font-mono);
+}
+[data-skin="winamp"] .search-box button,
+[data-skin="winamp"] .btn {
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  background: linear-gradient(180deg, #59667A, #3A4553);
+  color: #DCE4EE;
+  border: 1px solid #1E252E;
+  border-top-color: #6E7C90;
+}
+[data-skin="winamp"] .btn.primary { background: linear-gradient(180deg, #2FA83F, #1B7B29); color: #EAFBEC; }
+[data-skin="winamp"] .search-hint,
+[data-skin="winamp"] .field-help { color: #8E9BAB; }
+[data-skin="winamp"] .section-title,
+[data-skin="winamp"] .song-title {
+  font-family: var(--font-mono);
+  color: #22E03A;
+  letter-spacing: .04em;
+}
+[data-skin="winamp"] .mode-chip {
+  border-radius: 0;
+  font-family: var(--font-mono);
+  background: #0B0F0C;
+  color: #22E03A;
+  border: 1px solid #000;
+}
+[data-skin="winamp"] .album-card,
+[data-skin="winamp"] .pair-card,
+[data-skin="winamp"] .modal-card {
+  border-radius: 0;
+  border: 1px solid #1E252E;
+  border-top-color: #59667A;
+}
+[data-skin="winamp"] .toast {
+  border-radius: 0;
+  font-family: var(--font-mono);
+  background: #0B0F0C;
+  color: #22E03A;
+  border: 1px solid #22E03A;
+}
