@@ -1392,13 +1392,10 @@ html, body {
    원래의 스틸블루 크롬 + #22E03A 형광 초록은 앱의 어떤 화면과도 이어지지 않아
    이 레이아웃만 다른 앱처럼 보이게 만들고 있었다.
    크롬은 RETRO 의 어두운 초록 기구물, 디스플레이는 민트 인광, 조작 중인 값만 오렌지. */
-.pair-list.winamp {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  background: none;
-  border: none;
-  box-shadow: none;
+/* WINAMP 창의 색은 전면 스킨(.pair-list.winamp)뿐 아니라 TUNER 아래에 붙는
+   플레이리스트 창에서도 쓴다. 그래서 변수는 레이아웃이 아니라 이 공용 자리에 둔다. */
+.pair-list.winamp,
+.mp3-playlist {
   --wa-chrome: #434A47;       /* 기구물 본체 — 거의 무채색 */
   --wa-chrome-hi: #5B635F;    /* 베벨 윗면 */
   --wa-chrome-lo: #262B29;    /* 베벨 아랫면 */
@@ -1406,6 +1403,15 @@ html, body {
   --wa-lcd: #08110C;          /* LCD 바탕 */
   --wa-live: #86DCB4;         /* 조작 중인 값 — EQ 손잡이·선택행. 인광 계열로 둔다:
                                  여기에 주황을 쓰면 인광과 보색으로 부딪혀 눈이 아프다 */
+}
+
+.pair-list.winamp {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  background: none;
+  border: none;
+  box-shadow: none;
 }
 .wa-win {
   background: var(--wa-chrome);
@@ -1922,6 +1928,12 @@ html, body {
   cursor: pointer;
 }
 .mp3-center:active { box-shadow: inset 0 2px 5px rgba(0,0,0,.5); }
+
+/* 기기 아래에 붙는 WINAMP 플레이리스트 창.
+   전면 스킨과 달리 '창 하나'만 빌려오므로 바깥 배경은 RETRO 그대로다.
+   기기(약 469px)와 같이 세로에 들어가야 해서 목록 높이를 줄여 스크롤시킨다. */
+.mp3-playlist { margin-top: 10px; }
+.mp3-playlist .wa-pl-body { max-height: 148px; }
 
 @media (prefers-reduced-motion: reduce) {
   .mp3-rail { scroll-behavior: auto; }

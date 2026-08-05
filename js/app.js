@@ -423,6 +423,42 @@
     });
 
     // 상태바 시계 자리에는 지금 맞춰진 연도를 띄운다 — 이 기기의 '주파수 표시창'
+    /* 기기 아래에 WINAMP 플레이리스트 창을 붙인다.
+       다이얼은 한 번에 한 곡만 보여주니, 전체 목록을 훑는 자리가 따로 필요하다.
+       전면 스킨(WINAMP 레이아웃)과 달리 '창 하나'만 빌려온다 — 나머지 화면은 그대로 RETRO.
+       푸터의 연도 범위는 장식이 아니라 이 목록이 걸친 실제 시간 폭이다. */
+    const years = defs.map((d) => Number(era.years(d))).filter(Boolean);
+    const pl = document.createElement('section');
+    pl.className = 'wa-win mp3-playlist';
+    pl.innerHTML = `
+      <div class="wa-title">
+        <span class="wa-title-line"></span>
+        <span class="wa-title-text">WINAMP PLAYLIST</span>
+        <span class="wa-title-line"></span>
+        <span class="wa-title-btns">─ □ ✕</span>
+      </div>
+      <div class="wa-pl-body">
+        ${defs.map((def, i) => `
+          <div class="wa-row" data-i="${i}">
+            <span class="wa-idx">${i + 1}.</span>
+            <span class="wa-name">${era.sub(def)} - ${def.title}</span>
+            <span class="wa-dur">'${String(era.years(def)).slice(2)}</span>
+          </div>`).join('')}
+      </div>
+      <div class="wa-pl-foot">
+        <span class="wa-pf">ADD</span><span class="wa-pf">REM</span>
+        <span class="wa-pf">SEL</span><span class="wa-pf">MISC</span>
+        <span class="wa-pl-total">${Math.min(...years)}-${Math.max(...years)}</span>
+        <span class="wa-pf wa-listopts">LIST<br>OPTS</span>
+      </div>
+    `;
+    container.appendChild(pl);
+
+    const rows = [...pl.querySelectorAll('.wa-row')];
+    rows.forEach((row) => {
+      row.addEventListener('click', () => railScrollTo(rail, Number(row.dataset.i)));
+    });
+
     const syncHead = () => {
       const i = railNearest(rail);
       const def = defs[i];
@@ -431,6 +467,8 @@
         dot.classList.toggle('on', n === i);
         dot.setAttribute('aria-selected', String(n === i));
       });
+      // 다이얼이 가리키는 곡을 목록에서도 반전시킨다 — 둘은 같은 상태를 본다
+      rows.forEach((row, n) => row.classList.toggle('on', n === i));
     };
 
     attachRail(rail, { onSettle: syncHead });
