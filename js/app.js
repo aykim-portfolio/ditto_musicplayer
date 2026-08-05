@@ -486,6 +486,77 @@
       if (def) openPair(def);
     });
 
+    /* ----- 휠 회전 -----
+       실물처럼 링을 따라 손가락을 돌리면 다이얼이 좌우로 흐른다.
+       중심에서의 각도 변화를 스크롤 픽셀로 바꾸고, 손을 떼면 가까운 방송국에 안착시킨다.
+       시계방향이 다음 연도 — 화면 좌표계는 y 가 아래로 자라서 각도도 시계방향으로 커진다. */
+    const WHEEL_PX_PER_DEG = 2.4;   // 한 바퀴(360°)에 약 5칸
+    const WHEEL_SLOP_DEG = 8;       // 이만큼 안 돌면 '누른 것'으로 본다
+    const wheel = shell.querySelector('.mp3-wheel');
+    let turning = false;
+    let lastAngle = 0;
+    let turnedDeg = 0;
+
+    const angleAt = (e) => {
+      const r = wheel.getBoundingClientRect();
+      return Math.atan2(e.clientY - (r.top + r.height / 2),
+                        e.clientX - (r.left + r.width / 2)) * 180 / Math.PI;
+    };
+
+    wheel.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      if (e.target.closest('.mp3-center')) return;   // 가운데는 재생 버튼이다
+      turning = true;
+      turnedDeg = 0;
+      lastAngle = angleAt(e);
+      railStopGlide(rail);
+      rail.style.scrollBehavior = 'auto';
+      rail.style.scrollSnapType = 'none';            // 돌리는 동안 스냅이 끼어들면 튄다
+      wheel.classList.add('is-turning');
+      try { wheel.setPointerCapture(e.pointerId); } catch {}
+    });
+
+    wheel.addEventListener('pointermove', (e) => {
+      if (!turning) return;
+      let d = angleAt(e) - lastAngle;
+      if (d > 180) d -= 360;        // -180 ↔ 180 경계를 넘는 순간 튀지 않게
+      if (d < -180) d += 360;
+      lastAngle += d;
+      turnedDeg += Math.abs(d);
+      rail.scrollLeft += d * WHEEL_PX_PER_DEG;
+    });
+
+    /* 돌리고 손을 뗀 걸 ◀◀ ▶▶ 클릭으로 처리하지 않는다.
+       단, 억제는 '제스처 직후 한 번'으로 한정한다 — 회전 뒤에 클릭이 따라오지 않는
+       경우(버튼 밖에서 손을 뗀 경우)가 흔한데, 플래그를 남겨두면 그다음의 멀쩡한
+       클릭까지 삼켜서 버튼이 죽는다. 실제로 그렇게 죽었다. */
+    let suppressClick = false;
+
+    const endTurn = () => {
+      if (!turning) return;
+      turning = false;
+      wheel.classList.remove('is-turning');
+      rail.style.scrollBehavior = '';
+      rail.style.scrollSnapType = '';
+      railScrollTo(rail, railNearest(rail));   // 가까운 방송국에 안착
+
+      if (turnedDeg > WHEEL_SLOP_DEG) {
+        suppressClick = true;
+        // click 은 pointerup 과 같은 태스크에서 뒤이어 온다. 그 한 번만 막고 푼다.
+        setTimeout(() => { suppressClick = false; }, 0);
+      }
+      turnedDeg = 0;
+    };
+    wheel.addEventListener('pointerup', endTurn);
+    wheel.addEventListener('pointercancel', endTurn);
+
+    wheel.addEventListener('click', (e) => {
+      if (!suppressClick) return;
+      e.stopPropagation();
+      e.preventDefault();
+      suppressClick = false;
+    }, true);
+
     buildDots(defs, rail);
     railSync(rail);
     syncHead();

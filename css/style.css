@@ -1885,7 +1885,21 @@ html, body {
   box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 2px 6px rgba(0,0,0,.35);
   display: grid;
   place-items: center;
+  /* 링을 따라 돌리는 제스처가 페이지 스크롤에 먹히지 않게 */
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
 }
+/* 돌리는 동안 링이 눌린 느낌 — 실물 휠은 회전해도 눈에 안 보이니 링을 돌리지는 않는다 */
+.mp3-wheel.is-turning {
+  cursor: grabbing;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2),
+              inset 0 0 0 1px rgba(255,255,255,.07),
+              0 2px 10px rgba(0,0,0,.45);
+}
+.mp3-wheel.is-turning * { pointer-events: none; }
+.mp3-center { cursor: pointer; }
 .mp3-lbl {
   position: absolute;
   font-size: 10px;
