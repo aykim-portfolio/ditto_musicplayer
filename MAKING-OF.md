@@ -8,6 +8,62 @@
 
 ---
 
+## 화면
+
+전부 `430 × 932` (iPhone 14 Pro Max) @2x. 캡처 방법은 [맨 아래](#8-스크린샷-자동-캡처)에.
+
+### 리메이크 — MODERN
+
+민트 바디에 둥근 모서리, Paperlogy. 아트워크를 카드 밖으로 꺼내 화면을 넓게 쓴다.
+
+| 플레이어 | 캐러셀 | 그리드 | 리스트 |
+|:--:|:--:|:--:|:--:|
+| <img src="docs/screenshots/01-player-modern.png" width="190"> | <img src="docs/screenshots/03-home-carousel.png" width="190"> | <img src="docs/screenshots/04-home-grid.png" width="190"> | <img src="docs/screenshots/05-home-list.png" width="190"> |
+| 셔틀 콘솔 · 15년 사이 | 뱃지가 `◀◀ 1997` — 갈 수 있는 곳 | | |
+
+### 원곡 — RETRO
+
+같은 초록의 어두운 끝. 픽셀 서체(Galmuri), 각진 모서리, 그레인, 하드웨어 디테일.
+
+| 플레이어 | 랙 (EP-133) | 튜너 | 다이얼 |
+|:--:|:--:|:--:|:--:|
+| <img src="docs/screenshots/02-player-retro.png" width="190"> | <img src="docs/screenshots/06-home-rack.png" width="190"> | <img src="docs/screenshots/08-home-tuner.png" width="190"> | <img src="docs/screenshots/09-home-dial.png" width="190"> |
+| 사각 페이더 캡 | 패드 그리드 · LED | 연도가 곧 주파수 | 부채꼴 휠 |
+
+### WINAMP 스킨
+
+형태는 90년대 원본, 색은 ditto 팔레트. 목록뿐 아니라 화면 전체를 덮는다.
+
+| 홈 (세 창) | 플레이어 |
+|:--:|:--:|
+| <img src="docs/screenshots/07-home-winamp.png" width="230"> | <img src="docs/screenshots/11-player-winamp.png" width="230"> |
+| 무채색 섀시 + 창 안쪽에만 인광 | 스킨이 다른 화면까지 따라간다 |
+
+### 양쪽 — 한 화면에 두 시대
+
+| |
+|:--:|
+| <img src="docs/screenshots/10-home-twin.png" width="240"> |
+| 같은 팔레트인데 위 줄은 픽셀 서체·각진 모서리, 아래 줄은 Paperlogy·둥근 모서리.<br>가운데 다리가 두 곡의 연차를 말한다 — **34년을 건너뜁니다** |
+
+### 타임슬립 전환
+
+방향이 보인다 — 과거로는 차갑게 줄무늬가 오른쪽으로, 현재로는 따뜻하게 왼쪽으로.
+가운데 연도는 출발 연도에서 도착 연도로 굴러간다.
+
+| 과거로 | 현재로 |
+|:--:|:--:|
+| <img src="docs/screenshots/15-glitch-back.png" width="230"> | <img src="docs/screenshots/16-glitch-fwd.png" width="230"> |
+
+### 공통 화면
+
+| 검색 | 라이브러리 | 설정 |
+|:--:|:--:|:--:|
+| <img src="docs/screenshots/12-search.png" width="200"> | <img src="docs/screenshots/13-library.png" width="200"> | <img src="docs/screenshots/14-settings.png" width="200"> |
+| 입력창도 결과 행과 같은 판 | | 예전엔 하드코딩 크림이라 떠 있었다 |
+
+---
+
 ## 0. 출발점
 
 앱은 이미 굴러가고 있었다. 문제는 완성도가 아니라 **컨셉이 화면에 안 보인다**는 것이었다.
@@ -298,7 +354,42 @@ TUNER 다이얼과 DIAL 휠이 '연표'로 읽히려면 순서 자체가 시간�
 
 ---
 
-## 8. 남은 것
+## 8. 스크린샷 자동 캡처
+
+화면 16장을 손으로 찍지 않고 스크립트로 뽑았다. 디자인을 고칠 때마다 다시 찍어야 하는데
+수동이면 그때마다 상태를 손으로 재현해야 하고, 결국 기록이 코드보다 뒤처진다.
+
+문제는 **앱 상태가 전부 JS 로만 움직인다**는 것이었다. `?era=original&layout=winamp` 같은
+URL 이 없으니 헤드리스 브라우저가 특정 화면을 열 방법이 없다.
+
+그래서 같은 오리진 하네스(`tools/_build/shot.html`)를 만들었다. 앱을 iframe 으로 띄우고
+그 안에서 상태를 만든 다음 `<html data-shot="ready">` 로 신호를 세우면, 헤드리스 크롬이
+그때 찍는다. 같은 오리진이라 iframe 내부 DOM 을 그대로 조작할 수 있다는 점을 이용한 것.
+
+```
+chrome --headless=new --force-device-scale-factor=2
+       --window-size=430,932 --virtual-time-budget=40000
+       --screenshot=out.png "…/shot.html?screen=home&era=original&layout=winamp"
+```
+
+**두 번 틀렸고 두 번 고쳤다.**
+
+1. **아트워크가 빈 사각형으로 찍혔다.** 고정 `sleep` 으로 기다렸는데, 레이아웃을 바꾸면
+   목록이 다시 그려지면서 iTunes 매칭이 처음부터 다시 시작된다. 튜너 파일이 35KB 밖에
+   안 되는 게 단서였다 → 아트워크가 실제로 붙을 때까지 폴링하도록 바꿨다.
+2. **트윈 화면이 절반만 칠해진 채로 찍혔다.** `backgroundImage` 가 세팅된 것과 그림이 다
+   그려진 것은 다르다 → `img.decode()` 로 디코드 완료까지 기다린다.
+   트윈 217KB → 649KB, 리스트 187KB → 334KB.
+
+파일 크기가 디버깅 단서가 됐다는 게 재밌는 부분이다. 화면을 눈으로 하나씩 확인하는 것보다
+바이트 수를 훑는 쪽이 "뭔가 안 그려졌다"를 훨씬 빨리 잡아냈다.
+
+> 하네스는 `tools/_build/` (gitignore 대상)에 있다. 빌드 산출물과 같은 취급 —
+> 언제든 다시 만들 수 있고, 저장소에 남을 이유가 없다.
+
+---
+
+## 9. 남은 것
 
 - **WINAMP 인광 앰버 안** — 결정 대기 (3번 참조).
 - `SIGNAL POWER ▂▅▇▅` — 재생 컨트롤과 셔틀 콘솔 사이에서 자리만 차지하는 장식.
