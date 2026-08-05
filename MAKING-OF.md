@@ -24,20 +24,33 @@
 ### 원곡 — RETRO
 
 같은 초록의 어두운 끝. 픽셀 서체(Galmuri), 각진 모서리, 그레인, 하드웨어 디테일.
+목록 레이아웃은 **WINAMP · TUNER 둘**이다.
 
-| 플레이어 | 랙 (EP-133) | 튜너 | 다이얼 |
-|:--:|:--:|:--:|:--:|
-| <img src="docs/screenshots/02-player-retro.png" width="190"> | <img src="docs/screenshots/06-home-rack.png" width="190"> | <img src="docs/screenshots/08-home-tuner.png" width="190"> | <img src="docs/screenshots/09-home-dial.png" width="190"> |
-| 사각 페이더 캡 | 패드 그리드 · LED | 연도가 곧 주파수 | 부채꼴 휠 |
+| 플레이어 | 튜너 |
+|:--:|:--:|
+| <img src="docs/screenshots/02-player-retro.png" width="230"> | <img src="docs/screenshots/08-home-tuner.png" width="230"> |
+| 사각 페이더 캡 · 카세트 오버레이 | 연도가 곧 주파수 — 이 앱에서 가장 직접적인 시간 은유 |
 
 ### WINAMP 스킨
 
 형태는 90년대 원본, 색은 ditto 팔레트. 목록뿐 아니라 화면 전체를 덮는다.
+원곡 모드의 기본 레이아웃이다.
 
 | 홈 (세 창) | 플레이어 |
 |:--:|:--:|
 | <img src="docs/screenshots/07-home-winamp.png" width="230"> | <img src="docs/screenshots/11-player-winamp.png" width="230"> |
 | 무채색 섀시 + 창 안쪽에만 인광 | 스킨이 다른 화면까지 따라간다 |
+
+#### 노출에서 뺀 레이아웃
+
+원곡 목록을 WINAMP·TUNER 둘로 좁히면서 아래 둘은 tweak 버튼 순환에서 뺐다.
+지우지는 않았다 — 렌더러와 CSS 가 그대로 있어서 `ERA.original.layouts` 배열에
+이름만 되돌리면 다시 살아난다.
+
+| RACK — EP-133 패드 그리드 | DIAL — 부채꼴 회전 휠 |
+|:--:|:--:|
+| <img src="docs/screenshots/06-home-rack.png" width="200"> | <img src="docs/screenshots/09-home-dial.png" width="200"> |
+| 3×3 패드 · LED · 실크스크린 번호 | 중심에서 멀수록 기울고 흐려지는 다이얼 |
 
 ### 양쪽 — 한 화면에 두 시대
 
@@ -389,7 +402,28 @@ chrome --headless=new --force-device-scale-factor=2
 
 ---
 
-## 9. 남은 것
+## 9. 원곡 레이아웃을 둘로 좁힘
+
+원곡 목록에 하드웨어 레퍼런스 4종(RACK · WINAMP · TUNER · DIAL)을 넣어두고 tweak 버튼으로
+돌려보게 해뒀었다. 탐색 단계에서는 맞는 방식이지만, 고르고 나면 남겨둘 이유가 없다 —
+쓰는 사람 입장에서 tweak 버튼은 "다음에 뭐가 나올지 모르는 버튼"이 되고,
+네 번 눌러야 원하는 화면으로 돌아온다.
+
+**WINAMP 과 TUNER 만 남겼다.** 기본은 WINAMP.
+
+- WINAMP — 원곡 시대를 가장 강하게 환기하는 형태. 화면 전체를 덮는 유일한 레이아웃이다.
+- TUNER — 연도를 주파수로 읽는 다이얼. 이 앱의 주제(시간 이동)를 목록 자체가 말하는 유일한 배치다.
+
+빼면서 코드는 지우지 않았다. `ERA.original.layouts` 배열에서 이름만 빠졌고
+렌더러(`renderRack` / `renderDial`)와 CSS 는 그대로다. 되살리는 비용이 한 줄이면
+지워서 얻는 것보다 남겨서 얻는 게 크다.
+
+스크린샷도 지우지 않고 [노출에서 뺀 레이아웃](#노출에서-뺀-레이아웃)으로 옮겼다.
+이 문서는 버린 안을 남기는 게 목적이라, 만들었다가 안 쓴 화면도 기록에 속한다.
+
+---
+
+## 10. 남은 것
 
 - **WINAMP 인광 앰버 안** — 결정 대기 (3번 참조).
 - `SIGNAL POWER ▂▅▇▅` — 재생 컨트롤과 셔틀 콘솔 사이에서 자리만 차지하는 장식.
