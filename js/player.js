@@ -43,7 +43,10 @@ class PreviewEngine {
     this.audio.currentTime = dur ? Math.min(seekSec, Math.max(0, dur - 0.5)) : seekSec;
   }
 
-  play() { return this.audio.play().catch(() => {}); }
+  /* 실제로 재생이 시작됐는지를 돌려준다.
+     브라우저는 사용자 제스처 없는 자동재생을 거부하는데, 그걸 삼켜버리면
+     화면에는 일시정지 버튼이 떠 있고 소리는 안 나는 상태가 된다. */
+  play() { return this.audio.play().then(() => true).catch(() => false); }
   pause() { this.audio.pause(); }
   seek(sec) { this.audio.currentTime = sec; }
   getCurrentTime() { return this.audio.currentTime || 0; }
@@ -176,9 +179,10 @@ window.DittoPlayer = (() => {
       const seek = seekSec != null ? seekSec : (currentEngine().getCurrentTime() || 0);
       const engine = await prepareEngine(state.mode, seek);
       engine.setVolume(1);
-      engine.play();
-      state.playing = true;
-      handlers.onStateChange?.(true);
+      // 자동재생이 막히면 false 가 온다 — 그때는 멈춘 상태로 정직하게 표시한다
+      const started = await engine.play();
+      state.playing = started !== false;
+      handlers.onStateChange?.(state.playing);
     } catch (err) {
       handleSourceError(err);
     }

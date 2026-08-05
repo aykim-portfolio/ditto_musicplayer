@@ -702,7 +702,7 @@ def playground_screens():
 {SCREEN_CSS}
 .ds-rowhead {{ font-family: "Space Mono", monospace; font-size: 11px; font-weight: 700;
                letter-spacing: .16em; color: #7a7a7a; padding: 16px 20px 0; }}
-/* 8개 화면을 한눈에 담기 위해 축소 (390×985 → 62%) */
+/* 8개 화면을 한눈에 담기 위해 축소 (430×932 → 62%) */
 .ds-mini {{ width: 242px; height: 611px; overflow: hidden; }}
 .ds-mini .phone {{ transform: scale(.62); transform-origin: top left; flex: 0 0 auto; }}
 .ds-screens {{ gap: 16px; padding: 12px 20px 20px; justify-content: flex-start; }}

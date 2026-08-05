@@ -10,7 +10,7 @@
      모서리 — --radius-* 토큰 (RETRO 각짐 ↔ MODERN 둥금)
      질감   — --grain-opacity, 하드웨어 패널·LED
 
-   캔버스: 390 × 985
+   캔버스: 430 × 932 (iPhone 14 Pro Max) — --canvas-w / --canvas-h
    ============================================================ */
 
 /* Paperlogy — 구글 폰트에 없어 눈누 배포본(jsdelivr)에서 직접 받는다.
@@ -81,6 +81,10 @@
   --radius-ctl: 999px;    /* 버튼·칩·세그먼트 (알약) */
   --radius-field: 8px;    /* 입력·셀렉트 */
   --radius-round: 50%;    /* 원형 버튼 — FAB·아이콘·슬라이더 썸 */
+
+  /* 데스크톱에서 보여줄 기준 기기 — iPhone 14 Pro Max (430 × 932pt) */
+  --canvas-w: 430px;
+  --canvas-h: 932px;
 
   --pad-screen: 16px;
   --gap-v: 16px;
@@ -216,15 +220,37 @@ html, body {
   font-family: var(--font-display);
 }
 
-/* ===== Icons (Lucide) ===== */
-.lucide { display: inline-block; vertical-align: -2px; }
-.inline-ico { display: inline-flex; align-items: center; }
+/* ===== Icons (Lucide) =====
+   app.js 가 [data-icon] 안에 <svg> 를 꽂는다. 이 래퍼를 인라인 박스로 두면
+   글자 베이스라인 아래 여백(디센더)까지 높이에 잡혀서, 버튼 안에서 아이콘이
+   2~3px 위로 뜬다. 실측: 뒤로가기 -2.33px / 이전·다음 -2.00px / FAB -2.67px.
+   래퍼 자체를 중앙 정렬 박스로 만들고 줄높이를 0 으로 눌러 여백을 없앤다. */
+[data-icon] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+.lucide { display: block; }
 
-/* ===== 폰 캔버스 ===== */
+/* 본문 문장에 섞여 들어가는 아이콘만 예외 — 여기서는 베이스라인에 맞춰야 한다
+   (라이브러리 안내문의 ⊕ 처럼) */
+.inline-ico {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -2px;
+  line-height: 0;
+}
+
+/* ===== 폰 캔버스 =====
+   데스크톱 웹에서 열면 iPhone 14 Pro Max(430 × 932pt) 크기의 프레임으로 보여준다.
+   실제 모바일에서는 100% 로 늘어난다 — 아래 미디어 쿼리 참조.
+   폭은 토큰이다: 캐러셀·트윈 레일이 첫/마지막 카드를 중앙에 스냅시키려고
+   좌우 패딩을 (캔버스폭 - 카드폭)/2 로 계산하기 때문에 하드코딩하면 어긋난다. */
 .phone {
   position: relative;
-  width: 390px;
-  height: 985px;
+  width: var(--canvas-w);
+  height: var(--canvas-h);
   max-height: 100vh;
   overflow: hidden;
   background: var(--color-bg-primary);
@@ -233,6 +259,20 @@ html, body {
   transition: background-color .5s ease;
   display: flex;
   flex-direction: column;
+}
+
+/* 실제 폰에서는 프레임이 아니라 화면 전체다.
+   .phone 만 늘리면 안 된다 — 캐러셀·트윈 레일의 스냅 패딩이 --canvas-w 로
+   계산되므로 토큰 자체를 바꿔야 첫/마지막 카드가 계속 중앙에 선다. */
+@media (max-width: 480px) {
+  :root {
+    --canvas-w: 100vw;
+    --canvas-h: 100dvh;
+  }
+  .phone {
+    max-height: none;
+    box-shadow: none;
+  }
 }
 
 /* 레트로 그레인 */
@@ -436,7 +476,7 @@ html, body {
    그러니 스크롤 규칙도 레이아웃 이름이 아니라 .rail 에 붙어 있어야 한다.
    (예전엔 .carousel 에만 붙어 있어서 TUNER 가 세로 격자로 쏟아졌다.)
    화면 좌우 패딩을 상쇄해 캔버스 끝까지 흐르게 하고,
-   양옆 padding = (390 - 카드폭)/2 로 첫/마지막 카드도 중앙에 스냅되게 한다. */
+   양옆 padding = (캔버스폭 - 카드폭)/2 로 첫/마지막 카드도 중앙에 스냅되게 한다. */
 .pair-list.rail {
   display: flex;
   gap: var(--cc-gap);
@@ -445,7 +485,7 @@ html, body {
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   margin-inline: calc(-1 * var(--pad-screen));
-  padding: 6px calc((390px - var(--cc-w)) / 2) 4px;
+  padding: 6px calc((var(--canvas-w) - var(--cc-w)) / 2) 4px;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
   /* 마우스로 끌어 넘길 수 있다는 신호 + 드래그 중 텍스트 선택 방지 */
@@ -1831,7 +1871,7 @@ html, body {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   margin-inline: calc(-1 * var(--pad-screen));
-  padding: 2px calc((390px - 150px) / 2) 6px;
+  padding: 2px calc((var(--canvas-w) - 150px) / 2) 6px;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
   cursor: grab;

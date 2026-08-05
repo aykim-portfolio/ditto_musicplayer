@@ -42,7 +42,7 @@ iTunes 30초 미리듣기만 쓸 경우 `index.html` 더블클릭으로도 동�
 
 ```
 ditto/
-├── index.html        # 390×985 모바일 캔버스, Home/Search/Library/Player
+├── index.html        # 430×932 모바일 캔버스(iPhone 14 Pro Max), Home/Search/Library/Player
 ├── css/style.css     # MODERN·RETRO 듀얼 테마, 글리치 애니메이션
 └── js/
     ├── config.js     # 설정·키 관리 (키는 localStorage)
