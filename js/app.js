@@ -111,8 +111,10 @@
       // 카드에 붙는 뱃지는 시대 이름이 아니라 '여기서 어디로 갈 수 있는지'다.
       // 홈에서부터 이 앱이 두 시대를 잇는 물건이라는 게 읽혀야 한다.
       badge: (d) => `▶▶ ${d.remake.year}`,
-      // 하드웨어 레퍼런스 4종 — tweak 버튼으로 돌려본다
-      layouts: ['rack', 'winamp', 'tuner', 'dial'],
+      // 하드웨어 레퍼런스 2종 — tweak 버튼으로 돌려본다.
+      // RACK(EP-133 패드)·DIAL(부채꼴 휠)은 노출에서 뺐다. 렌더러와 CSS 는 남아 있으니
+      // 여기 배열에 이름만 되돌리면 다시 살아난다.
+      layouts: ['winamp', 'tuner'],
       years: (d) => `${d.original.year}`,
       sub:   (d) => d.original.artist,
       art:   (p) => p.original.artwork || p.remake.artwork,
@@ -563,7 +565,7 @@
   };
   const ALL_LAYOUTS = Object.keys(LAYOUT_LABEL);
   // 시대별로 마지막에 고른 레이아웃을 기억한다
-  const layoutByEra = { original: 'rack', both: 'twin', remake: 'carousel' };
+  const layoutByEra = { original: 'winamp', both: 'twin', remake: 'carousel' };
   let layoutMode = layoutByEra[eraFilter];
 
   const listEl = $('#pair-list');
