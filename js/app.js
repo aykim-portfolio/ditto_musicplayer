@@ -114,7 +114,7 @@
       // 하드웨어 레퍼런스 2종 — tweak 버튼으로 돌려본다.
       // RACK(EP-133 패드)·DIAL(부채꼴 휠)은 노출에서 뺐다. 렌더러와 CSS 는 남아 있으니
       // 여기 배열에 이름만 되돌리면 다시 살아난다.
-      layouts: ['winamp', 'tuner'],
+      layouts: ['tuner', 'winamp'],
       years: (d) => `${d.original.year}`,
       sub:   (d) => d.original.artist,
       art:   (p) => p.original.artwork || p.remake.artwork,
@@ -367,8 +367,43 @@
     });
   }
 
-  /* ----- TUNER: 하이파이 주파수 다이얼 ----- */
+  /* ----- TUNER: 휴대용 MP3 플레이어 -----
+     2000년대 중반 보급형 MP3(아이팟 나노를 따라 만든 그 물건)의 구조를 그대로 쓴다.
+     바디 안에 LCD 가 파묻혀 있고, 그 아래 클릭휠이 붙는다.
+     주파수 다이얼과 궁합이 좋다 — 연도가 곧 주파수고, 휠이 곧 튜닝 노브다.
+
+     레일은 #pair-list 자체가 아니라 LCD 안에 중첩된다. TWIN 과 같은 방식으로
+     attachRail() 을 중첩 레일에 직접 건다. */
   function renderTuner(container, defs, era) {
+    const shell = document.createElement('div');
+    shell.className = 'mp3';
+    shell.innerHTML = `
+      <div class="mp3-screen">
+        <div class="mp3-status">
+          <span class="mp3-clock mono">${era.years(defs[0])}</span>
+          <span class="mp3-status-mid mono">TUNER</span>
+          <span class="mp3-batt"></span>
+        </div>
+        <div class="mp3-rail rail"></div>
+        <div class="mp3-icons">
+          <span class="mp3-ico on"></span><span class="mp3-ico"></span><span class="mp3-ico"></span>
+          <span class="mp3-ico"></span><span class="mp3-ico"></span><span class="mp3-ico"></span>
+          <span class="mp3-ico grid"></span>
+        </div>
+      </div>
+      <div class="mp3-wheel">
+        <span class="mp3-lbl menu mono">MENU</span>
+        <span class="mp3-lbl vol mono">VOL</span>
+        <button type="button" class="mp3-side prev" aria-label="이전 연도">◀◀</button>
+        <button type="button" class="mp3-side next" aria-label="다음 연도">▶▶</button>
+        <button type="button" class="mp3-center" aria-label="재생"></button>
+      </div>
+    `;
+    container.appendChild(shell);
+
+    const rail = shell.querySelector('.mp3-rail');
+    const clock = shell.querySelector('.mp3-clock');
+
     defs.forEach((def, idx) => {
       const st = document.createElement('article');
       st.className = 'tn-station';
@@ -380,15 +415,43 @@
         <p class="tn-artist">${era.sub(def)}</p>
       `;
       st.addEventListener('click', () => {
-        if (!st.classList.contains('is-active')) { scrollToCard(idx); return; }
+        if (!st.classList.contains('is-active')) { railScrollTo(rail, idx); return; }
         openPair(def);
       });
-      container.appendChild(st);
-      lazyArt(container, def, era.art);
+      rail.appendChild(st);
+      lazyArt(rail, def, era.art);
     });
-    buildDots(defs);
-    syncCarousel();
-    requestAnimationFrame(syncCarousel);
+
+    // 상태바 시계 자리에는 지금 맞춰진 연도를 띄운다 — 이 기기의 '주파수 표시창'
+    const syncHead = () => {
+      const i = railNearest(rail);
+      const def = defs[i];
+      if (def) clock.textContent = era.years(def);
+      [...dotsEl.children].forEach((dot, n) => {
+        dot.classList.toggle('on', n === i);
+        dot.setAttribute('aria-selected', String(n === i));
+      });
+    };
+
+    attachRail(rail, { onSettle: syncHead });
+    rail.addEventListener('scroll', syncHead, { passive: true });
+
+    // 클릭휠 — 좌우는 튜닝, 가운데는 재생
+    const step = (d) => {
+      const to = Math.max(0, Math.min(defs.length - 1, railNearest(rail) + d));
+      railScrollTo(rail, to);
+    };
+    shell.querySelector('.mp3-side.prev').addEventListener('click', () => step(-1));
+    shell.querySelector('.mp3-side.next').addEventListener('click', () => step(1));
+    shell.querySelector('.mp3-center').addEventListener('click', () => {
+      const def = defs[railNearest(rail)];
+      if (def) openPair(def);
+    });
+
+    buildDots(defs, rail);
+    railSync(rail);
+    syncHead();
+    requestAnimationFrame(() => { railSync(rail); syncHead(); });
   }
 
   /* ----- DIAL: 부채꼴 회전 휠 -----
@@ -565,14 +628,16 @@
   };
   const ALL_LAYOUTS = Object.keys(LAYOUT_LABEL);
   // 시대별로 마지막에 고른 레이아웃을 기억한다
-  const layoutByEra = { original: 'winamp', both: 'twin', remake: 'carousel' };
+  const layoutByEra = { original: 'tuner', both: 'twin', remake: 'carousel' };
   let layoutMode = layoutByEra[eraFilter];
 
   const listEl = $('#pair-list');
   const dotsEl = $('#carousel-dots');
 
   /** 가운데 정렬 가로 스크롤을 쓰는 레이아웃 (관성·스냅·인디케이터 대상) */
-  const RAIL_LAYOUTS = ['carousel', 'tuner', 'twin'];
+  /* #pair-list 자체가 레일인 레이아웃은 캐러셀 하나뿐이다.
+     TWIN 과 TUNER 는 레일을 안쪽에 중첩해 만들고 각자 attachRail() 을 건다. */
+  const RAIL_LAYOUTS = ['carousel'];
   const DOT_LAYOUTS = ['carousel', 'tuner'];
 
   function applyLayout() {
@@ -581,7 +646,7 @@
     else delete document.documentElement.dataset.skin;
 
     ALL_LAYOUTS.forEach((l) => listEl.classList.toggle(l, l === layoutMode));
-    listEl.classList.toggle('rail', RAIL_LAYOUTS.includes(layoutMode) && layoutMode !== 'twin');
+    listEl.classList.toggle('rail', RAIL_LAYOUTS.includes(layoutMode));
     dotsEl.classList.toggle('hidden', !DOT_LAYOUTS.includes(layoutMode));
     $('#btn-layout').innerHTML = iconSvg(LAYOUT_ICON[layoutMode], 16);
     $('#btn-layout').setAttribute('aria-label', `레이아웃 전환 (현재 ${LAYOUT_LABEL[layoutMode]})`);
@@ -628,6 +693,14 @@
     el.addEventListener('scroll', () => {
       if (st.syncPending) return;
       st.syncPending = requestAnimationFrame(() => { st.syncPending = 0; railSync(el); });
+      // rAF 가 멈춘 환경(배경 탭 등)에서 syncPending 이 영영 안 풀리는 걸 막는다
+      clearTimeout(st.syncFallback);
+      st.syncFallback = setTimeout(() => {
+        if (!st.syncPending) return;
+        cancelAnimationFrame(st.syncPending);
+        st.syncPending = 0;
+        railSync(el);
+      }, 200);
     }, { passive: true });
 
     el.addEventListener('wheel', (e) => {
@@ -747,7 +820,10 @@
 
   function railStopGlide(el) {
     const st = el._rail;
-    if (!st || !st.glideRaf) return;
+    if (!st) return;
+    clearTimeout(st.glideFallback);
+    st.glideFallback = 0;
+    if (!st.glideRaf) return;
     cancelAnimationFrame(st.glideRaf);
     st.glideRaf = 0;
     el.style.scrollSnapType = '';
@@ -777,19 +853,30 @@
     const t0 = performance.now();
     el.style.scrollSnapType = 'none';   // 굴리는 동안 스냅이 끼어들면 중간에 튄다
     el.style.scrollBehavior = 'auto';
+
+    const land = () => {                // 어떤 경로로 끝나든 도착점은 한 곳
+      clearTimeout(st.glideFallback);
+      st.glideFallback = 0;
+      if (st.glideRaf) { cancelAnimationFrame(st.glideRaf); st.glideRaf = 0; }
+      el.scrollLeft = to;
+      el.style.scrollSnapType = '';
+      el.style.scrollBehavior = '';
+      done();
+    };
+
     const tick = (now) => {
       const p = Math.min(1, (now - t0) / dur);
       el.scrollLeft = from + dist * (1 - Math.pow(1 - p, 3));
-      if (p < 1) {
-        st.glideRaf = requestAnimationFrame(tick);
-      } else {
-        st.glideRaf = 0;
-        el.style.scrollSnapType = '';
-        el.style.scrollBehavior = '';
-        done();
-      }
+      if (p < 1) st.glideRaf = requestAnimationFrame(tick);
+      else land();
     };
     st.glideRaf = requestAnimationFrame(tick);
+
+    /* rAF 는 탭이 배경으로 가거나 화면이 합성되지 않으면 아예 돌지 않는다.
+       그러면 글라이드가 중간에 멈춘 채 glideRaf 가 영영 남아, 이후 조작이 전부 죽는다.
+       타이머로 한 번 더 받쳐서 어떤 경우에도 도착은 보장한다. */
+    clearTimeout(st.glideFallback);
+    st.glideFallback = setTimeout(land, dur + 120);
   }
 
   /** 활성 카드 표시 + 인디케이터 갱신 */
@@ -825,14 +912,15 @@
   function scrollToCard(idx) { railScrollTo(listEl, idx); }
   function syncCarousel() { if (isRail(listEl)) railSync(listEl); }
 
-  function buildDots(defs) {
+  /** rail: 점을 눌렀을 때 움직일 레일. TUNER 처럼 레일이 #pair-list 가 아닌 경우 넘긴다. */
+  function buildDots(defs, rail = listEl) {
     dotsEl.innerHTML = '';
     defs.forEach((def, i) => {
       const dot = document.createElement('button');
       dot.type = 'button';
       dot.setAttribute('role', 'tab');
       dot.setAttribute('aria-label', `${i + 1}번째 · ${def.title}`);
-      dot.addEventListener('click', () => scrollToCard(i));
+      dot.addEventListener('click', () => railScrollTo(rail, i));
       dotsEl.appendChild(dot);
     });
   }

@@ -1711,59 +1711,219 @@ html, body {
   .wa-viz i, .wa-marquee span { animation: none; }
 }
 
-/* ===== TUNER — 하이파이 주파수 다이얼 ===== */
-.pair-list.tuner {
-  /* 중앙 고정 바늘. 스크롤 컨테이너의 background 는 내용과 함께 움직이지 않는다. */
+/* ===== TUNER — 휴대용 MP3 플레이어 =====
+   2000년대 중반 보급형 MP3 의 구조: 알루미늄 바디에 LCD 가 파묻히고 그 아래 클릭휠.
+   주파수 다이얼과 궁합이 맞는다 — 연도가 주파수고, 휠이 튜닝 노브다.
+   색은 ditto 팔레트를 쓴다(WINAMP 때와 같은 원칙: 형태는 빌리고 색은 우리 것). */
+.pair-list.tuner { display: block; }
+
+.mp3 {
+  background: linear-gradient(180deg, var(--hw-panel), var(--color-bg-deep));
+  border: 1px solid var(--hw-line);
+  border-radius: 18px;
+  padding: 12px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 6px 18px rgba(0,0,0,.3);
+}
+
+/* ---- LCD ---- */
+.mp3-screen {
+  background: var(--color-card-bg);
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 6px 6px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.6);
+}
+.mp3-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  letter-spacing: .1em;
+  color: var(--color-text-on-card-dim);
+}
+.mp3-status-mid { margin-left: auto; opacity: .5; }
+/* 배터리 표시 — 기기 각인 */
+.mp3-batt {
+  width: 17px; height: 9px;
+  border: 1px solid currentColor;
+  border-radius: 1px;
+  position: relative;
+  opacity: .8;
+}
+.mp3-batt::before {
+  content: ""; position: absolute; inset: 1.5px; right: 5px;
+  background: currentColor;
+}
+.mp3-batt::after {
+  content: ""; position: absolute; right: -3px; top: 2.5px;
+  width: 2px; height: 3px; background: currentColor;
+}
+
+/* 스테이션 레일 — 화면 안에서만 흐른다. 중앙 고정 바늘이 주파수를 가리킨다. */
+.mp3-rail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 8px calc(50% - 78px) 6px;
   background-image: linear-gradient(var(--color-accent), var(--color-accent));
-  background-size: 2px 100%;
+  background-size: 1px 100%;
   background-position: center;
   background-repeat: no-repeat;
-  padding-block: 10px 6px;
+  /* 양옆으로 흘러나가는 이웃 방송국을 화면 가장자리에서 흐린다.
+     그냥 두면 베젤에 딱 잘려서 '잘린 글자'로 보인다 — 다이얼은 흘러가야 한다. */
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
 }
+.mp3-rail::-webkit-scrollbar { display: none; }
+.mp3-rail.dragging { cursor: grabbing; }
+.mp3-rail.dragging * { pointer-events: none; }
+
 .tn-station {
-  flex: 0 0 var(--cc-w);
+  flex: 0 0 156px;
   align-self: flex-start;
   scroll-snap-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   cursor: pointer;
-  opacity: .38;
-  transform: scale(.9);
+  opacity: .3;
+  transform: scale(.88);
   transition: opacity .3s ease, transform .3s cubic-bezier(.22,.61,.36,1);
 }
 .tn-station.is-active { opacity: 1; transform: scale(1); }
 .tn-freq {
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--color-text-on-card);
   letter-spacing: .04em;
 }
+.tn-station.is-active .tn-freq { color: var(--color-accent); }
 /* 주파수 눈금 */
 .tn-scale {
-  width: 100%; height: 16px;
+  width: 100%; height: 11px;
   background-image: repeating-linear-gradient(90deg,
-    var(--color-text-primary) 0 1px, transparent 1px 12px);
-  opacity: .35;
+    var(--color-text-on-card) 0 1px, transparent 1px 10px);
+  opacity: .28;
 }
-.tn-station.is-active .tn-scale { opacity: .7; }
+.tn-station.is-active .tn-scale { opacity: .6; }
 .tn-art {
-  width: 118px; height: 118px;
+  width: 104px; height: 104px;
   flex: 0 0 auto;
   border-radius: var(--radius-art);
   background: var(--color-card-bg-2);
   background-size: cover;
   background-position: center;
-  border: 1px solid rgba(0,0,0,.35);
+  border: 1px solid rgba(0,0,0,.5);
 }
 .tn-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--color-text-on-card);
   font-family: var(--font-display);
+  max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.tn-artist { font-size: 11px; color: var(--color-text-primary); opacity: .6; }
+.tn-artist {
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--color-text-on-card);
+  opacity: .55;
+  max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* 화면 아래 픽셀 아이콘 줄 — 실물의 메뉴 아이콘 자리. 장식이다. */
+.mp3-icons { display: flex; align-items: center; gap: 5px; padding: 0 2px; }
+.mp3-ico {
+  width: 8px; height: 8px;
+  background: var(--color-text-on-card);
+  opacity: .3;
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
+}
+.mp3-ico.on { background: var(--color-accent); opacity: 1; }
+.mp3-ico.grid {
+  margin-left: auto;
+  clip-path: none;
+  background:
+    linear-gradient(var(--color-text-on-card) 0 0) 0 0 / 3px 3px no-repeat,
+    linear-gradient(var(--color-text-on-card) 0 0) 5px 0 / 3px 3px no-repeat,
+    linear-gradient(var(--color-text-on-card) 0 0) 0 5px / 3px 3px no-repeat,
+    linear-gradient(var(--color-text-on-card) 0 0) 5px 5px / 3px 3px no-repeat;
+}
+
+/* ---- 클릭휠 ---- */
+.mp3-wheel {
+  align-self: center;
+  position: relative;
+  width: 168px; height: 168px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 30%, var(--hw-line), var(--hw-panel) 70%);
+  border: 1px solid var(--hw-line);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 2px 6px rgba(0,0,0,.35);
+  display: grid;
+  place-items: center;
+}
+.mp3-lbl {
+  position: absolute;
+  font-size: 10px;
+  letter-spacing: .14em;
+  color: var(--color-text-primary);
+  opacity: .65;
+  pointer-events: none;
+}
+.mp3-lbl.menu { top: 14px; }
+.mp3-lbl.vol { bottom: 14px; }
+
+/* 좌우는 실제로 동작한다 — 연도를 한 칸씩 옮긴다.
+   MENU·VOL 은 실물의 각인이라 남겨두되 장식이다. */
+.mp3-side {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: .06em;
+  padding: 10px 8px;
+  cursor: pointer;
+  opacity: .75;
+  border-radius: 50%;
+}
+.mp3-side:hover { opacity: 1; }
+.mp3-side:active { transform: translateY(-50%) scale(.92); }
+.mp3-side.prev { left: 12px; }
+.mp3-side.next { right: 12px; }
+
+.mp3-center {
+  width: 62px; height: 62px;
+  border-radius: 50%;
+  border: 1px solid var(--hw-line);
+  background: radial-gradient(circle at 50% 35%, var(--color-bg-deep), var(--color-card-bg));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 1px 3px rgba(0,0,0,.4);
+  cursor: pointer;
+}
+.mp3-center:active { box-shadow: inset 0 2px 5px rgba(0,0,0,.5); }
+
+@media (prefers-reduced-motion: reduce) {
+  .mp3-rail { scroll-behavior: auto; }
+  .tn-station { transition: none; }
+}
 
 /* ===== DIAL — 부채꼴 회전 휠 ===== */
 .pair-list.dial {
