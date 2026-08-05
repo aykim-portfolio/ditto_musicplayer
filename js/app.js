@@ -120,12 +120,14 @@
       art:   (p) => p.original.artwork || p.remake.artwork,
     },
     both: {
-      // 양쪽 보기는 어느 한 시대를 고르지 않는다 — 앱의 기본 판(모던) 위에서
-      // 두 줄이 각자의 시대 형태(.era-past / .era-present)를 입는다.
-      theme: 'modern',
-      caption: '양쪽 BOTH',
+      // '사이'. 어느 편도 들지 않으려고 앱 기본 판에 올렸더니 그 기본 판이 곧
+      // 리메이크 팔레트라 결국 리메이크 편을 든 꼴이었다. 무채색 작업대를 따로 둔다.
+      theme: 'between',
+      caption: '사이 BETWEEN',
       badge: (d) => `${yearGap(d)}년`,
-      layouts: ['twin'],     // 원곡·리메이크 두 줄이 맞물려 움직인다
+      // TWIN(두 줄 맞물림)은 노출에서 뺐다 — 가로 레일 두 줄이라 앞의 두 화면과
+      // 구조가 겹쳤다. 렌더러와 CSS 는 남아 있으니 이름만 되돌리면 살아난다.
+      layouts: ['timeline'],
       years: (d) => `${d.original.year} ⇄ ${d.remake.year}`,
       sub:   (d) => `${d.original.artist} ⇄ ${d.remake.artist}`,
       art:   (p) => p.remake.artwork || p.original.artwork,
@@ -687,6 +689,53 @@
     requestAnimationFrame(() => { railSync(rails.original); railSync(rails.remake); });
   }
 
+  /* ----- TIMELINE: '사이' 화면 -----
+     원곡·리메이크가 훑어보는 화면이라면 여기는 재는 화면이다.
+     10쌍을 한 축 위에 얹어 연차를 한꺼번에 비교한다 — 선의 길이가 곧 시간이다.
+     좌우 끝점의 모양이 시대를 말한다(과거는 각지고 현재는 둥글다). */
+  function renderTimeline(container, defs) {
+    // 축 범위: 실제 데이터의 최소·최대를 10년 단위로 넉넉히 감싼다
+    const all = defs.flatMap((d) => [Number(d.original.year), Number(d.remake.year)]);
+    const MIN = Math.floor(Math.min(...all) / 10) * 10;
+    const MAX = Math.ceil(Math.max(...all) / 10) * 10;
+    const pos = (y) => ((Number(y) - MIN) / (MAX - MIN)) * 100;
+
+    // 눈금
+    const axis = document.createElement('div');
+    axis.className = 'tl-axis';
+    for (let y = MIN; y <= MAX; y += 10) {
+      axis.insertAdjacentHTML('beforeend',
+        `<i style="left:${pos(y)}%"></i><span style="left:${pos(y)}%">${y}</span>`);
+    }
+    container.appendChild(axis);
+
+    // 오래된 원곡부터 — 왼쪽 끝은 흩어져 있고 오른쪽 끝은 한곳으로 모인다.
+    // 여러 과거가 하나의 현재로 수렴하는 모양이 그대로 보인다.
+    [...defs]
+      .sort((a, b) => a.original.year - b.original.year)
+      .forEach((def) => {
+        const from = pos(def.original.year);
+        const to = pos(def.remake.year);
+        const row = document.createElement('article');
+        row.className = 'tl-row';
+        row.innerHTML = `
+          <div class="tl-track">
+            <span class="tl-line" style="left:${from}%;width:${to - from}%"></span>
+            <span class="tl-dot past" style="left:${from}%"></span>
+            <span class="tl-dot now" style="left:${to}%"></span>
+          </div>
+          <div class="tl-meta">
+            <span class="tl-year">${def.original.year}</span>
+            <span class="tl-title">${def.title}</span>
+            <span class="tl-artists">${def.original.artist} → ${def.remake.artist}</span>
+            <span class="tl-gap">${yearGap(def)}년</span>
+          </div>
+        `;
+        row.addEventListener('click', () => openPair(def));
+        container.appendChild(row);
+      });
+  }
+
   /* ----- 디스패처 ----- */
   function renderPairCards(container, defs, { removable = false, layout = 'grid' } = {}) {
     const era = ERA[eraFilter];
@@ -696,6 +745,7 @@
     if (layout === 'tuner') return renderTuner(container, defs, era);
     if (layout === 'dial') return renderDial(container, defs, era);
     if (layout === 'twin') return renderTwin(container, defs);
+    if (layout === 'timeline') return renderTimeline(container, defs);
     return renderCards(container, defs, era, layout, removable);
   }
 
@@ -728,16 +778,16 @@
   const LAYOUT_LABEL = {
     carousel: 'CAROUSEL', grid: 'GRID', list: 'LIST',
     rack: 'RACK', winamp: 'WINAMP', tuner: 'TUNER', dial: 'DIAL',
-    twin: 'TWIN',
+    twin: 'TWIN', timeline: 'TIMELINE',
   };
   const LAYOUT_ICON = {
     carousel: 'gallery-horizontal-end', grid: 'layout-grid', list: 'layout-list',
     rack: 'grid-3x3', winamp: 'list-music', tuner: 'radio', dial: 'disc-3',
-    twin: 'rows-2',
+    twin: 'rows-2', timeline: 'git-compare',
   };
   const ALL_LAYOUTS = Object.keys(LAYOUT_LABEL);
   // 시대별로 마지막에 고른 레이아웃을 기억한다
-  const layoutByEra = { original: 'tuner', both: 'twin', remake: 'carousel' };
+  const layoutByEra = { original: 'tuner', both: 'timeline', remake: 'carousel' };
   let layoutMode = layoutByEra[eraFilter];
 
   const listEl = $('#pair-list');

@@ -162,6 +162,38 @@
   --radius-round: 4px;
 }
 
+/* BETWEEN = 사이. 원곡도 리메이크도 아닌 세 번째 자리다.
+   예전에는 '어느 편도 들지 않는다'며 앱 기본 판(=MODERN)에 올렸는데,
+   그 기본 판이 곧 리메이크의 팔레트라 결과적으로 리메이크 편을 든 꼴이었다.
+   그래서 민트도 짙은 초록도 아닌 무채색 작업대를 따로 둔다 —
+   두 시대의 유물을 올려놓고 거리를 재는 자리. */
+[data-theme="between"] {
+  --font-display: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
+  --font-body: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
+  --font-label: var(--font-mono);   /* 축과 수치는 계측기의 글자 */
+
+  --color-bg-primary: #1E2220;
+  --color-bg-deep: #171A18;
+  --color-card-bg: #2A2F2C;
+  --color-card-bg-2: #363B38;
+  --color-nav-bg: #161917;
+  --color-text-primary: #DCE2DF;
+  --color-text-on-card: #ECF1EE;
+  --color-text-muted: #8B938F;
+  --color-progress-track: rgba(220, 226, 223, .18);
+  --color-progress-fill: var(--color-accent);
+  --grain-opacity: 0.04;
+  --grain-color: rgba(255, 255, 255, .06);
+
+  /* 모서리도 두 시대의 중간값 — 어느 쪽 기물도 아니다 */
+  --radius-card: 8px;
+  --radius-art: 6px;
+  --radius-art-lg: 10px;
+  --radius-ctl: 20px;
+  --radius-field: 5px;
+  --radius-round: 50%;
+}
+
 /* ---- 시대를 '부분'에만 입히는 토큰 묶음 ----
    색은 건드리지 않고 서체와 모서리만 갈아끼운다. 한 화면 안에 두 시대가
    같이 놓이는 자리(양쪽 보기의 원곡 줄)에서 쓴다 — 팔레트는 하나로 두고
@@ -383,6 +415,18 @@ html, body {
   background: var(--color-accent);
   color: #fff;
   opacity: 1;
+}
+
+/* 이름 대신 글리프를 쓰는 탭. 두 이웃과 높이·정렬이 어긋나면 안 되므로
+   폭만 조금 좁히고 세로 리듬은 그대로 둔다. */
+.vt-btn.vt-glyph { padding-inline: 13px; }
+.vt-btn.vt-glyph svg {
+  display: block;
+  width: 30px; height: 12px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
 }
 
 /* ===== Pair list ===== */
@@ -2014,6 +2058,108 @@ html, body {
   opacity: .45;
 }
 .dl-item.is-active .dl-year { color: var(--color-accent); opacity: 1; font-weight: 700; }
+
+/* ===== TIMELINE — '사이' 화면 =====
+   원곡·리메이크가 각자 훑어보는 화면이라면, 여기는 재는 화면이다.
+   10쌍의 연차를 한 축 위에 얹어 한꺼번에 비교한다 — 선의 길이가 곧 시간이다.
+   34년이 15년보다 눈에 띄게 길다는 걸 숫자가 아니라 길이로 안다.
+   가로 레일이 아니라 세로 스크롤이라 앞의 두 화면과 구조부터 겹치지 않는다. */
+.pair-list.timeline { display: flex; flex-direction: column; gap: 2px; }
+
+/* 맨 위 축 — 아래 모든 행이 이 눈금을 공유한다 */
+.tl-axis {
+  position: relative;
+  height: 22px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid currentColor;
+  color: var(--color-text-primary);
+  opacity: .35;
+}
+.tl-axis span {
+  position: absolute;
+  bottom: 4px;
+  transform: translateX(-50%);
+  font-family: var(--font-label);
+  font-size: 9px;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+/* 양 끝 눈금은 가운데 정렬하면 화면 밖으로 반쯤 나간다 — 안쪽으로 붙인다 */
+.tl-axis span:first-of-type { transform: none; }
+.tl-axis span:last-of-type { transform: translateX(-100%); }
+.tl-axis i {
+  position: absolute;
+  bottom: 0;
+  width: 1px; height: 4px;
+  background: currentColor;
+}
+
+.tl-row {
+  position: relative;
+  padding: 9px 0 10px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  transition: background-color .15s ease;
+}
+.tl-row:hover { background: rgba(255,255,255,.04); }
+.tl-row:last-child { border-bottom: 0; }
+
+/* 축 위의 구간. left/width 가 연도에 비례한다 — 여기가 이 화면의 전부다. */
+.tl-track { position: relative; height: 14px; }
+.tl-line {
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: var(--color-accent);
+  opacity: .6;
+}
+.tl-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-text-primary);
+}
+/* 끝점의 모양이 곧 시대다 — 과거는 각지고 현재는 둥글다 (앱의 모서리 규칙 그대로) */
+.tl-dot.past { width: 8px; height: 8px; border-radius: 1px; }
+.tl-dot.now  { width: 9px; height: 9px; border-radius: 50%; background: var(--color-accent); }
+
+.tl-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 5px;
+}
+.tl-year {
+  font-family: var(--font-label);
+  font-size: 10px;
+  color: var(--color-text-primary);
+  opacity: .6;
+  font-variant-numeric: tabular-nums;
+}
+.tl-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tl-artists {
+  flex: 1;
+  min-width: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  opacity: .5;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tl-gap {
+  flex: 0 0 auto;
+  font-family: var(--font-label);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
 
 /* ===== TWIN — 원곡·리메이크 두 줄 맞물림 =====
    한 화면에 두 시대가 같이 선다. 팔레트는 하나지만 위쪽 줄은 .era-past 를 입어

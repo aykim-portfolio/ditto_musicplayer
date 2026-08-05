@@ -29,7 +29,18 @@
 
       <div class="view-toggle" id="view-toggle" role="group" aria-label="시대 필터">
         <button data-era="original" class="vt-btn" aria-pressed="false">원곡</button>
-        <button data-era="both" class="vt-btn" aria-pressed="false">양쪽</button>
+        <!-- 이 탭만 이름이 없다. 원곡·리메이크는 '곡의 판본'이지만 여기는 판본이 아니라
+             둘 사이의 거리라서, 같은 층위의 이름을 붙이면 오히려 거짓말이 된다.
+             글리프는 이 탭이 여는 화면의 축소판이다 —
+             각진 점(과거) ─ 선(사이) ─ 둥근 점(현재). 앱의 모서리 토큰이 그대로 들어간다. -->
+        <button data-era="both" class="vt-btn vt-glyph" aria-pressed="false"
+                aria-label="사이 — 원곡과 리메이크의 연차" title="사이">
+          <svg viewBox="0 0 30 12" aria-hidden="true" focusable="false">
+            <rect x="0.5" y="3.5" width="5" height="5" rx="0.5" />
+            <line x1="6.5" y1="6" x2="22" y2="6" />
+            <circle cx="26" cy="6" r="3" />
+          </svg>
+        </button>
         <button data-era="remake" class="vt-btn active" aria-pressed="true">리메이크</button>
       </div>
 
