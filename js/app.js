@@ -951,6 +951,9 @@
     const pair = {
       id: `single-${track.trackId}`,
       title: track.title,
+      // 검색 결과는 30초 미리듣기 고정. 추천 셔틀과 달리 videoId 를 미리 확보해 둘 수
+      // 없어서 곡마다 Data API 검색이 나가는데, 일 할당량이 검색 100회밖에 안 된다.
+      previewOnly: true,
       original: null,
       remake: {
         artist: track.artist,
@@ -997,8 +1000,11 @@
       ? '양쪽 어디로 옮겨도 듣던 위치는 그대로예요'
       : '단일 트랙 — 셔틀 불가';
 
+    // 검색 결과는 설정이 YouTube 여도 미리듣기로 나간다 — 표시도 실제와 맞춘다
     $('#source-tag').textContent =
-      DittoPlayer.state.source === 'youtube' ? 'YouTube 전체 곡' : 'iTunes 30초 미리듣기';
+      (DittoPlayer.state.source === 'youtube' && !pair.previewOnly)
+        ? 'YouTube 전체 곡'
+        : 'iTunes 30초 미리듣기';
 
     setTheme(isOriginal ? 'retro' : 'modern');
   }
@@ -1223,7 +1229,11 @@
     DittoConfig.setSource(source);
     modal.classList.add('hidden');
     toast('설정을 저장했어요.');
-    $('#source-tag').textContent = source === 'youtube' ? 'YouTube 전체 곡' : 'iTunes 30초 미리듣기';
+    // 지금 걸린 트랙이 미리듣기 고정(검색 결과)이면 설정과 무관하게 그대로 표시한다
+    $('#source-tag').textContent =
+      (source === 'youtube' && !DittoPlayer.state.pair?.previewOnly)
+        ? 'YouTube 전체 곡'
+        : 'iTunes 30초 미리듣기';
     await DittoPlayer.setSource(source);
   });
 

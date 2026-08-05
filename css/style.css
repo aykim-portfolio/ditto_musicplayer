@@ -660,6 +660,9 @@ html, body {
   opacity: .6;
   line-height: 1.5;
 }
+/* 부모의 opacity 는 자식이 되돌릴 수 없다(그룹으로 합성된다).
+   그래서 강조는 투명도가 아니라 색으로 준다. */
+.search-hint strong { font-weight: 700; color: var(--color-accent); }
 .search-results { display: flex; flex-direction: column; gap: 10px; }
 .result-row {
   display: flex;

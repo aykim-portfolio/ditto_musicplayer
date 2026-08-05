@@ -92,12 +92,20 @@ window.DittoPlayer = (() => {
     return engines.youtube;
   }
 
+  /* 실제로 YouTube 를 쓸지. 설정이 'youtube' 여도 pair.previewOnly 가 걸려 있으면 안 쓴다.
+     검색 결과가 그 경우다 — 추천 셔틀과 달리 videoId 를 미리 확보해 둘 수 없어서
+     곡마다 Data API 검색이 나가는데, search.list 는 호출당 100 units(일 10,000)라
+     금방 바닥난다. 검색은 30초 미리듣기로 고정한다. */
+  function useYoutube() {
+    return state.source === 'youtube' && !state.pair?.previewOnly;
+  }
+
   function currentEngine() {
-    const set = state.source === 'youtube' ? ytEngines() : engines.preview;
+    const set = useYoutube() ? ytEngines() : engines.preview;
     return set[state.mode];
   }
   function otherEngine(mode) {
-    const set = state.source === 'youtube' ? ytEngines() : engines.preview;
+    const set = useYoutube() ? ytEngines() : engines.preview;
     return set[mode];
   }
 
@@ -120,7 +128,7 @@ window.DittoPlayer = (() => {
   async function resolveSrc(mode) {
     const meta = state.pair[mode];
     if (!meta) throw new Error('NO_TRACK');
-    if (state.source === 'youtube') {
+    if (useYoutube()) {
       if (!meta.videoId) {
         meta.videoId = await DittoYoutube.searchVideoId(meta.ytQuery || `${state.pair.title} ${meta.artist} Official Audio`);
       }
