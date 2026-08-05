@@ -108,7 +108,9 @@
     original: {
       theme: 'retro',
       caption: '원곡 ORIGINAL',
-      badge: 'ORIGINAL',
+      // 카드에 붙는 뱃지는 시대 이름이 아니라 '여기서 어디로 갈 수 있는지'다.
+      // 홈에서부터 이 앱이 두 시대를 잇는 물건이라는 게 읽혀야 한다.
+      badge: (d) => `▶▶ ${d.remake.year}`,
       // 하드웨어 레퍼런스 4종 — tweak 버튼으로 돌려본다
       layouts: ['rack', 'winamp', 'tuner', 'dial'],
       years: (d) => `${d.original.year}`,
@@ -116,9 +118,11 @@
       art:   (p) => p.original.artwork || p.remake.artwork,
     },
     both: {
-      theme: 'retro',
+      // 양쪽 보기는 어느 한 시대를 고르지 않는다 — 앱의 기본 판(모던) 위에서
+      // 두 줄이 각자의 시대 형태(.era-past / .era-present)를 입는다.
+      theme: 'modern',
       caption: '양쪽 BOTH',
-      badge: 'BOTH',
+      badge: (d) => `${yearGap(d)}년`,
       layouts: ['twin'],     // 원곡·리메이크 두 줄이 맞물려 움직인다
       years: (d) => `${d.original.year} ⇄ ${d.remake.year}`,
       sub:   (d) => `${d.original.artist} ⇄ ${d.remake.artist}`,
@@ -127,7 +131,7 @@
     remake: {
       theme: 'modern',
       caption: '리메이크 REMAKE',
-      badge: 'REMAKE',
+      badge: (d) => `◀◀ ${d.original.year}`,
       layouts: ['carousel', 'grid', 'list'],
       years: (d) => `${d.remake.year}`,
       sub:   (d) => d.remake.artist,
@@ -135,6 +139,22 @@
     },
   };
   let eraFilter = 'remake';
+
+  /** 두 곡 사이의 연차. 셔틀이 건너뛰는 거리 = 이 앱이 파는 값. */
+  function yearGap(def) {
+    const a = Number(def?.original?.year);
+    const b = Number(def?.remake?.year);
+    if (!a || !b) return 0;
+    return Math.abs(b - a);
+  }
+
+  /* 홈 목록은 연대순으로 세운다. 지금 보고 있는 시대의 연도가 기준.
+     TUNER 다이얼과 DIAL 휠이 '연표'로 읽히려면 순서 자체가 시간이어야 한다 —
+     예전엔 데이터 파일에 적힌 순서였다. */
+  function orderedPairs() {
+    const side = eraFilter === 'remake' ? 'remake' : 'original';
+    return [...DITTO_PAIRS].sort((a, b) => a[side].year - b[side].year);
+  }
 
   /* ---------- Home: 추천 셔틀 목록 ----------
      레이아웃마다 마크업이 달라서 렌더러를 나눠 둔다.
@@ -158,7 +178,7 @@
     if (layout === 'carousel') {
       return `
         <div class="cc-art skeleton" data-art="${def.id}">
-          <span class="cc-badge">${era.badge}</span>
+          <span class="cc-badge">${era.badge(def)}</span>
           <span class="cc-year mono">${era.years(def)}</span>
         </div>
         <div class="cc-meta">
@@ -427,9 +447,20 @@
      "지금 사용자가 잡고 있는 줄"만 상대를 민다. */
   function renderTwin(container, defs) {
     const rails = {};
+    // 두 줄 사이의 다리 — 지금 맞물린 두 곡이 몇 년 떨어져 있는지 보여준다
+    const bridge = document.createElement('div');
+    bridge.className = 'twin-bridge';
+    bridge.innerHTML = '<span class="tb-gap mono"></span>';
+    const bridgeGap = bridge.querySelector('.tb-gap');
+    const setBridge = (idx) => {
+      const gap = yearGap(defs[idx]);
+      bridgeGap.textContent = gap ? `${gap}년을 건너뜁니다` : '';
+    };
+
     ['original', 'remake'].forEach((side) => {
       const wrap = document.createElement('div');
-      wrap.className = `twin-side ${side}`;
+      // 색은 그대로 두고 형태만 각 시대의 것으로 — 한 화면에 두 시대가 같이 선다
+      wrap.className = `twin-side ${side} ${side === 'original' ? 'era-past' : 'era-present'}`;
       wrap.innerHTML = `<span class="tw-label mono">${side === 'original' ? 'ORIGINAL' : 'REMAKE'}</span>`;
 
       const rail = document.createElement('div');
@@ -458,17 +489,27 @@
       });
     });
 
+    // 다리는 두 줄 사이에 낀다
+    container.insertBefore(bridge, container.children[1]);
+
     // 두 줄을 서로에게 묶는다
     attachRail(rails.original, {
       twin: () => rails.remake,
-      onSettle: (i) => railScrollTo(rails.remake, i, { silent: true }),
+      onSettle: (i) => { railScrollTo(rails.remake, i, { silent: true }); setBridge(i); },
     });
     attachRail(rails.remake, {
       twin: () => rails.original,
-      onSettle: (i) => railScrollTo(rails.original, i, { silent: true }),
+      onSettle: (i) => { railScrollTo(rails.original, i, { silent: true }); setBridge(i); },
     });
+
+    // 끄는 동안에도 연차가 따라 바뀌게 — 안착까지 기다리면 숫자가 뒤늦게 튄다
+    ['original', 'remake'].forEach((side) => {
+      rails[side].addEventListener('scroll', () => setBridge(railNearest(rails[side])), { passive: true });
+    });
+
     railSync(rails.original);
     railSync(rails.remake);
+    setBridge(0);
     requestAnimationFrame(() => { railSync(rails.original); railSync(rails.remake); });
   }
 
@@ -543,7 +584,7 @@
     $('#btn-layout').innerHTML = iconSvg(LAYOUT_ICON[layoutMode], 16);
     $('#btn-layout').setAttribute('aria-label', `레이아웃 전환 (현재 ${LAYOUT_LABEL[layoutMode]})`);
     $('#list-caption').textContent = `${ERA[eraFilter].caption} · ${LAYOUT_LABEL[layoutMode]}`;
-    renderPairCards(listEl, DITTO_PAIRS, { layout: layoutMode });
+    renderPairCards(listEl, orderedPairs(), { layout: layoutMode });
   }
 
   // tweak 버튼 — 현재 시대가 가진 레이아웃들만 돌린다
@@ -843,15 +884,28 @@
     $('#song-subtitle').textContent = meta.album || `${meta.year}`;
     $('#album-art').style.backgroundImage = meta.artwork ? `url('${meta.artwork}')` : 'none';
 
+    /* ---- 셔틀 콘솔 ---- */
     $('#year-original').textContent = pair.original?.year ?? '—';
     $('#year-remake').textContent = pair.remake?.year ?? '—';
+    $('#artist-original').textContent = pair.original?.artist ?? '—';
+    $('#artist-remake').textContent = pair.remake?.artist ?? '—';
 
     const shuttle = $('#shuttle');
+    const canTravel = !!(pair.original && pair.remake);
     shuttle.value = isOriginal ? 0 : 100;
-    shuttle.disabled = !(pair.original && pair.remake);
-    $('#shuttle-caption').innerHTML = shuttle.disabled
-      ? '단일 트랙 — 셔틀 불가'
-      : `${iconSvg('arrow-left', 12)} TIME SHUTTLE ${iconSvg('arrow-right', 12)}`;
+    shuttle.disabled = !canTravel;
+
+    // 지금 서 있는 정거장에 불이 들어온다 — 슬라이더 위치만으로는 상태가 안 읽힌다
+    $('#stop-original').classList.toggle('is-active', isOriginal);
+    $('#stop-remake').classList.toggle('is-active', !isOriginal);
+    $('#stop-original').disabled = !canTravel;
+    $('#stop-remake').disabled = !canTravel;
+
+    const gap = yearGap(pair);
+    $('#shuttle-gap').textContent = gap ? `${gap}년 사이` : '';
+    $('#shuttle-caption').textContent = canTravel
+      ? '양쪽 어디로 옮겨도 듣던 위치는 그대로예요'
+      : '단일 트랙 — 셔틀 불가';
 
     $('#source-tag').textContent =
       DittoPlayer.state.source === 'youtube' ? 'YouTube 전체 곡' : 'iTunes 30초 미리듣기';
@@ -859,28 +913,71 @@
     setTheme(isOriginal ? 'retro' : 'modern');
   }
 
-  /* ---------- 글리치 타임슬립 연출 (PRD 5-1) ---------- */
+  /* ---------- 글리치 타임슬립 연출 (PRD 5-1) ----------
+     전환은 이 앱에서 시간 이동이 실제로 일어나는 유일한 순간이다.
+     방향(과거/현재)에 따라 색과 줄무늬가 흐르는 쪽이 갈리고,
+     가운데 연도는 출발 연도에서 도착 연도까지 굴러간다. */
+  const YEAR_ROLL_MS = 700;   // 크로스페이드(800ms)보다 살짝 먼저 도착하게
+  let glitchRaf = 0;
+
   function glitch(show, toMode, pair) {
     const overlay = $('#glitch');
-    if (show) {
-      const year = pair?.[toMode]?.year ?? '';
-      $('#glitch-text').textContent =
-        toMode === 'original' ? `◀◀ REWINDING… ${year}` : `▶▶ FAST-FORWARD… ${year}`;
-      overlay.classList.remove('hidden');
-      if (navigator.vibrate) navigator.vibrate(30); // Haptic 피드백
-    } else {
+
+    if (!show) {
+      if (glitchRaf) cancelAnimationFrame(glitchRaf);
+      glitchRaf = 0;
       overlay.classList.add('hidden');
+      return;
     }
+
+    const fromMode = toMode === 'original' ? 'remake' : 'original';
+    const from = Number(pair?.[fromMode]?.year) || 0;
+    const to = Number(pair?.[toMode]?.year) || 0;
+    const goingBack = toMode === 'original';
+
+    overlay.dataset.dir = goingBack ? 'back' : 'fwd';
+    $('#glitch-dir').textContent = goingBack ? '◀◀ REWINDING' : '▶▶ FAST-FORWARD';
+    $('#glitch-sub').textContent = pair?.[toMode]?.artist ?? '';
+
+    const yearEl = $('#glitch-year');
+    yearEl.textContent = String(from || to || '—');
+    overlay.classList.remove('hidden');
+    if (navigator.vibrate) navigator.vibrate(30); // Haptic 피드백
+
+    // 굴릴 구간이 없거나 모션을 줄이는 설정이면 도착 연도를 바로 박는다
+    if (!from || !to || from === to || reduceMotion.matches) {
+      yearEl.textContent = String(to || from || '—');
+      return;
+    }
+
+    if (glitchRaf) cancelAnimationFrame(glitchRaf);
+    const t0 = performance.now();
+    const roll = (now) => {
+      const p = Math.min(1, (now - t0) / YEAR_ROLL_MS);
+      const eased = 1 - Math.pow(1 - p, 3);   // 빠르게 튀어나갔다가 도착점에서 잦아든다
+      yearEl.textContent = String(Math.round(from + (to - from) * eased));
+      glitchRaf = p < 1 ? requestAnimationFrame(roll) : 0;
+    };
+    glitchRaf = requestAnimationFrame(roll);
   }
 
-  /* ---------- 타임 셔틀 슬라이더 ---------- */
+  /* ---------- 타임 셔틀 ----------
+     목적지가 둘뿐이라 슬라이더를 끄는 것 말고 정거장을 눌러서도 갈 수 있다.
+     두 경로 모두 travelTo() 하나로 모은다. */
   const shuttleEl = $('#shuttle');
-  shuttleEl.addEventListener('change', async () => {
-    const toMode = Number(shuttleEl.value) < 50 ? 'original' : 'remake';
-    shuttleEl.value = toMode === 'original' ? 0 : 100;
-    const { pair, mode } = DittoPlayer.state;
-    if (!pair || toMode === mode) return;
+  let traveling = false;
 
+  async function travelTo(toMode) {
+    const { pair, mode } = DittoPlayer.state;
+    if (!pair || !pair.original || !pair.remake) return;
+    // 이동 중 재입력은 무시한다 — 크로스페이드가 겹치면 두 음원이 같이 남는다
+    if (traveling || toMode === mode) {
+      shuttleEl.value = mode === 'original' ? 0 : 100;
+      return;
+    }
+
+    traveling = true;
+    shuttleEl.value = toMode === 'original' ? 0 : 100;
     glitch(true, toMode, pair);
     let ok = false;
     try {
@@ -889,18 +986,28 @@
       // 전환이 어떻게 끝나든 오버레이는 반드시 걷는다.
       // (여기서 놓치면 글리치 화면이 걸린 채 화면이 잠긴다)
       glitch(false);
+      traveling = false;
     }
     if (!ok) shuttleEl.value = mode === 'original' ? 0 : 100; // 실패 시 원위치
+  }
+
+  shuttleEl.addEventListener('change', () => {
+    travelTo(Number(shuttleEl.value) < 50 ? 'original' : 'remake');
   });
+  $('#stop-original').addEventListener('click', () => travelTo('original'));
+  $('#stop-remake').addEventListener('click', () => travelTo('remake'));
 
   /* ---------- 재생 컨트롤 ---------- */
   $('#btn-play').addEventListener('click', () => DittoPlayer.toggle());
 
   function step(delta) {
     if (currentPairIndex < 0) return toast('추천 목록에서만 이동할 수 있어요.');
-    const next = (currentPairIndex + delta + DITTO_PAIRS.length) % DITTO_PAIRS.length;
+    // 이전/다음은 화면에 보이는 순서(연대순)를 따라간다 — 목록과 어긋나면 안 된다
+    const list = orderedPairs();
+    const here = list.findIndex((p) => p.id === DITTO_PAIRS[currentPairIndex].id);
+    const next = (here + delta + list.length) % list.length;
     // 자동/수동 곡 이동 시 사용자가 보던 화면을 빼앗지 않음
-    openPair(DITTO_PAIRS[next], { show: activeScreen === 'player' });
+    openPair(list[next], { show: activeScreen === 'player' });
   }
   $('#btn-prev').addEventListener('click', () => step(-1));
   $('#btn-next').addEventListener('click', () => step(1));

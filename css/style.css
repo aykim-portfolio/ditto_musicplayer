@@ -1,7 +1,15 @@
 /* ============================================================
    ditto — 세대 공감 오디오 플레이어
-   듀얼 테마: [data-theme="modern"] 민트×오렌지 미니멀 (리메이크)
-             [data-theme="retro"]  크림×차콜×주황 산업 하드웨어 (원곡, EP-133 K.O. II 참조)
+
+   듀얼 테마이지만 팔레트는 하나다. 두 스킨은 같은 초록 램프의 양 끝에 선다 —
+     [data-theme="modern"] 민트 바디 + 짙은 초록 카드 (리메이크, 현재)
+     [data-theme="retro"]  짙은 초록 바디 + 더 어두운 디스플레이 모듈 (원곡, 과거. EP-133 K.O. II 참조)
+   오렌지 액센트는 앱 전체에 하나뿐이고, 카드·내비는 두 스킨이 같은 값을 쓴다.
+   시대 구분은 색이 아니라 아래 세 축이 맡는다:
+     서체   — RETRO 픽셀(Galmuri) + 모노 라벨 / MODERN Paperlogy + 본문 서체 라벨
+     모서리 — --radius-* 토큰 (RETRO 각짐 ↔ MODERN 둥금)
+     질감   — --grain-opacity, 하드웨어 패널·LED
+
    캔버스: 390 × 985
    ============================================================ */
 
@@ -55,10 +63,25 @@
 }
 
 :root {
-  /* 공통 토큰 */
+  /* ---- 색: 두 스킨이 공유하는 값 ----
+     오렌지는 앱 전체에 하나뿐이다. 테마별로 다른 주황을 두면 같은 앱으로 안 읽힌다. */
   --color-accent: #F5793A;
-  --color-beige: #E5D5AE;
-  --radius-card: 12px;
+  --color-accent-deep: #C6521F;              /* 눌린 면·테두리 */
+  --color-accent-glow: rgba(245, 121, 58, .45);
+  --color-accent-cool: #4FC79A;              /* 글리치 색수차의 반대쪽 — 팔레트 안의 차가운 짝 */
+  /* 카드 위에서 한 단계 죽인 글자색. 예전 --color-beige(#E5D5AE) 자리인데,
+     그 따뜻한 탄색이 전역 토큰이라 MODERN 화면까지 카키로 물들이고 있었다. */
+  --color-text-on-card-dim: #C2D6CB;
+
+  /* ---- 모서리: MODERN(둥근) ↔ RETRO(각진) 를 가르는 축 ----
+     여기서 px 를 직접 쓰면 테마가 바뀌어도 따라오지 않는다. 반드시 토큰을 쓸 것. */
+  --radius-card: 12px;    /* 카드·패널·모달 */
+  --radius-art: 10px;     /* 아트워크 */
+  --radius-art-lg: 18px;  /* 캐러셀 대형 아트워크 */
+  --radius-ctl: 999px;    /* 버튼·칩·세그먼트 (알약) */
+  --radius-field: 8px;    /* 입력·셀렉트 */
+  --radius-round: 50%;    /* 원형 버튼 — FAB·아이콘·슬라이더 썸 */
+
   --pad-screen: 16px;
   --gap-v: 16px;
   --nav-h: 64px;
@@ -70,6 +93,10 @@
   /* 강조(제목·수치)와 본문을 나눠 쓴다. 기본값은 기존 서체 — RETRO 는 이대로 간다. */
   --font-display: var(--font-sans);
   --font-body: var(--font-sans);
+  --grain-color: rgba(0, 0, 0, .06);
+  /* 라벨·캡션·수치용. RETRO 는 모노(기기 실크스크린), MODERN 은 본문 서체를
+     넓은 자간으로 — 모노는 그 자체가 레트로 신호라 MODERN 에 쓰면 대비가 죽는다. */
+  --font-label: var(--font-mono);
 }
 
 [data-theme="modern"] {
@@ -77,6 +104,7 @@
      Open Sans 에는 한글 글리프가 없어 한글 본문은 IBM Plex Sans KR 로 떨어진다. */
   --font-display: "Paperlogy", "IBM Plex Sans KR", -apple-system, sans-serif;
   --font-body: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
+  --font-label: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
 
   --color-bg-primary: #BFE3D0;          /* 민트 그린 */
   --color-bg-deep: #A9D6C0;
@@ -89,34 +117,70 @@
   --color-progress-track: rgba(244, 241, 232, 0.18);
   --color-progress-fill: var(--color-accent);
   --grain-opacity: 0;
+  --grain-color: rgba(0, 0, 0, .06);
 }
 
-/* RETRO = 원곡. EP-133 K.O. II 풍의 산업 디자인 —
-   크림 바디 + 차콜 디스플레이 모듈 + 주황 액센트. 강조는 픽셀 서체, 본문은 Open Sans. */
+/* RETRO = 원곡. EP-133 K.O. II 풍의 산업 디자인을 MODERN 팔레트의 어두운 끝으로 옮긴 것.
+   색상환은 MODERN 과 완전히 같고 명도만 반대편이다 — 과거는 깊게, 현재는 밝게.
+   덕분에 팔레트는 하나로 묶이면서 시대 전환이 색으로도 읽힌다.
+   시대의 나머지 신호는 픽셀 서체 · 각진 모서리 · 그레인이 맡는다. */
 [data-theme="retro"] {
   --font-display: "Galmuri11", "IBM Plex Sans KR", monospace;
   --font-body: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
   /* 포인트 서체는 화면당 제목 하나에만 — 남발하면 포인트가 아니게 된다 */
   --font-point: "GanaChocolate", "Galmuri11", "IBM Plex Sans KR", sans-serif;
 
-  --color-accent: #F04E23;              /* SAMPLE 노브 주황 */
-  --color-bg-primary: #EDEBE5;          /* 크림 바디 */
-  --color-bg-deep: #DCD9D1;
-  --color-card-bg: #1F1F1E;             /* 디스플레이 모듈 차콜 */
-  --color-card-bg-2: #2C2C2A;
-  --color-nav-bg: #171716;
-  --color-text-primary: #1A1A18;
-  --color-text-on-card: #EDEBE5;
-  --color-text-muted: #8A887F;
-  --color-progress-track: rgba(237, 235, 229, 0.18);
-  --color-progress-fill: #F04E23;
+  /* 오렌지는 :root 값 하나로 통일했다 — 여기서 다시 정의하지 않는다. */
+  --color-bg-primary: #22332B;          /* 어두운 초록 바디 (MODERN 민트의 반대 끝) */
+  --color-bg-deep: #18251F;
+  --color-card-bg: #0F1814;             /* 바디보다 더 어두운 디스플레이 모듈 — 파묻힌 화면 */
+  --color-card-bg-2: #17231D;
+  --color-nav-bg: #0C1310;
+  --color-text-primary: #D6E8DD;
+  --color-text-on-card: #EAF3EE;
+  --color-text-muted: #86A093;
+  --color-progress-track: rgba(214, 232, 221, 0.18);
+  --color-progress-fill: var(--color-accent);
   --grain-opacity: 0.06;                /* 산업 디자인이라 노이즈는 거의 걷어낸다 */
+  --grain-color: rgba(255, 255, 255, .07);   /* 어두운 바디 위에서는 밝은 주사선이어야 보인다 */
 
-  /* 하드웨어 디테일 */
-  --hw-panel: #D9D7D0;                  /* 버튼·패널 회색 */
-  --hw-line: #C4C1B8;                   /* 실선 구획 */
-  --hw-led: #E03A2F;                    /* 표시등 빨강 */
-  --radius-card: 6px;                   /* 각진 기구물 느낌 */
+  /* 하드웨어 디테일 — 바디보다 한 단계 밝은 조작부 */
+  --hw-panel: #2E4238;                  /* 버튼·패널 */
+  --hw-line: #3D5347;                   /* 실선 구획 */
+  --hw-led: var(--color-accent);         /* 표시등 */
+
+  /* 각진 기구물 — 색을 통일한 만큼 모서리가 시대 구분의 주력이 된다 */
+  --radius-card: 6px;
+  --radius-art: 4px;
+  --radius-art-lg: 6px;
+  --radius-ctl: 3px;
+  --radius-field: 2px;
+  --radius-round: 4px;
+}
+
+/* ---- 시대를 '부분'에만 입히는 토큰 묶음 ----
+   색은 건드리지 않고 서체와 모서리만 갈아끼운다. 한 화면 안에 두 시대가
+   같이 놓이는 자리(양쪽 보기의 원곡 줄)에서 쓴다 — 팔레트는 하나로 두고
+   시대는 형태로만 말한다는 규칙을 그대로 옮긴 것. */
+.era-past {
+  --font-display: "Galmuri11", "IBM Plex Sans KR", monospace;
+  --font-label: var(--font-mono);
+  --radius-card: 6px;
+  --radius-art: 4px;
+  --radius-art-lg: 6px;
+  --radius-ctl: 3px;
+  --radius-field: 2px;
+  --radius-round: 4px;
+}
+.era-present {
+  --font-display: "Paperlogy", "IBM Plex Sans KR", -apple-system, sans-serif;
+  --font-label: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
+  --radius-card: 12px;
+  --radius-art: 10px;
+  --radius-art-lg: 18px;
+  --radius-ctl: 999px;
+  --radius-field: 8px;
+  --radius-round: 50%;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -129,7 +193,13 @@ html, body {
   justify-content: center;
 }
 
-.mono { font-family: var(--font-mono); letter-spacing: 0.02em; }
+/* 라벨·수치 자리. RETRO 에서는 모노, MODERN 에서는 본문 서체가 온다.
+   숫자가 세로로 줄맞춤되는 자리(재생시간·연도)가 많아 tabular-nums 를 함께 건다. */
+.mono {
+  font-family: var(--font-label);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
 .hidden { display: none !important; }
 
 /* 강조 서체를 쓰는 자리: 로고·제목·수치·주요 버튼.
@@ -171,7 +241,7 @@ html, body {
   position: absolute; inset: 0;
   pointer-events: none;
   opacity: var(--grain-opacity);
-  background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.06) 0 1px, transparent 1px 3px);
+  background-image: repeating-linear-gradient(0deg, var(--grain-color) 0 1px, transparent 1px 3px);
   z-index: 5;
   transition: opacity .5s ease;
 }
@@ -195,7 +265,7 @@ html, body {
 .logo-dot { color: var(--color-accent); }
 .icon-btn {
   width: 36px; height: 36px;
-  border: none; border-radius: 50%;
+  border: none; border-radius: var(--radius-round);
   background: transparent;
   color: var(--color-text-primary);
   font-size: 19px;
@@ -224,6 +294,13 @@ html, body {
    (이게 없으면 짧은 뷰포트에서 aspect-ratio 를 준 아트워크까지 세로로 찌그러진다) */
 .screen > * { flex-shrink: 0; }
 
+/* 플레이어는 내용이 화면보다 짧다 — 아래에만 큰 공백이 남던 걸 위아래로 나눈다.
+   safe 를 쓰는 이유: 내용이 넘칠 때 center 는 위쪽을 스크롤로 닿을 수 없게 잘라낸다. */
+#screen-player { justify-content: center; }
+@supports (justify-content: safe center) {
+  #screen-player { justify-content: safe center; }
+}
+
 /* ===== Discovery Badge ===== */
 .badge-row {
   display: flex;
@@ -242,7 +319,7 @@ html, body {
   align-self: center;
   display: flex;
   background: var(--color-card-bg);
-  border-radius: 20px;
+  border-radius: var(--radius-ctl);
   padding: 4px;
   gap: 4px;
 }
@@ -251,11 +328,11 @@ html, body {
   background: transparent;
   color: var(--color-text-on-card);
   opacity: .55;
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: 11px;
   font-weight: 700;
   padding: 6px 14px;
-  border-radius: 16px;
+  border-radius: var(--radius-ctl);
   cursor: pointer;
   letter-spacing: .06em;
   display: inline-flex;
@@ -294,7 +371,7 @@ html, body {
   color: var(--color-text-primary);
   opacity: .5;
   width: 30px; height: 30px;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -324,7 +401,7 @@ html, body {
   width: 100%;
   aspect-ratio: 1;
   flex: 0 0 auto;        /* 격자에서도 정사각 유지 (리스트는 아래에서 56px 고정) */
-  border-radius: 8px;
+  border-radius: var(--radius-art);
   background: var(--color-card-bg-2);
   background-size: cover;
   background-position: center;
@@ -336,11 +413,11 @@ html, body {
   position: absolute;
   left: 6px; bottom: 6px;
   background: rgba(0,0,0,.65);
-  color: var(--color-beige);
-  font-family: var(--font-mono);
+  color: var(--color-text-on-card-dim);
+  font-family: var(--font-label);
   font-size: 9px;
   padding: 2px 6px;
-  border-radius: 10px;
+  border-radius: var(--radius-ctl);
 }
 .pair-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
 .pair-sub { font-size: 11px; opacity: .65; line-height: 1.4; }
@@ -353,11 +430,14 @@ html, body {
   align-items: center;
 }
 
-/* ===== Carousel ===== *
-   리메이크(MODERN) 기본 레이아웃. 다크 카드 패널을 걷어내고 아트워크만
-   띄워서 화면을 넓게 쓴다. 화면 좌우 패딩을 상쇄해 캔버스 끝까지 흐르게 하고,
+/* ===== Rail ===== *
+   가운데 정렬 가로 스크롤 레일. CAROUSEL(리메이크)과 TUNER(원곡)가 공유한다.
+   app.js 의 applyLayout() 이 두 레이아웃에 .rail 을 걸어주고, 관성 엔진도 이 클래스를 본다 —
+   그러니 스크롤 규칙도 레이아웃 이름이 아니라 .rail 에 붙어 있어야 한다.
+   (예전엔 .carousel 에만 붙어 있어서 TUNER 가 세로 격자로 쏟아졌다.)
+   화면 좌우 패딩을 상쇄해 캔버스 끝까지 흐르게 하고,
    양옆 padding = (390 - 카드폭)/2 로 첫/마지막 카드도 중앙에 스냅되게 한다. */
-.pair-list.carousel {
+.pair-list.rail {
   display: flex;
   gap: var(--cc-gap);
   overflow-x: auto;
@@ -373,10 +453,14 @@ html, body {
   user-select: none;
   -webkit-user-select: none;
 }
-.pair-list.carousel::-webkit-scrollbar { display: none; }
-.pair-list.carousel.dragging { cursor: grabbing; }
+.pair-list.rail::-webkit-scrollbar { display: none; }
+.pair-list.rail.dragging { cursor: grabbing; }
 /* 끄는 동안 이미지가 브라우저 기본 드래그로 딸려오지 않게 */
-.pair-list.carousel.dragging * { pointer-events: none; }
+.pair-list.rail.dragging * { pointer-events: none; }
+
+/* ===== Carousel ===== *
+   리메이크(MODERN) 기본 레이아웃. 다크 카드 패널을 걷어내고 아트워크만
+   띄워서 화면을 넓게 쓴다. */
 
 .carousel-card {
   flex: 0 0 var(--cc-w);
@@ -402,7 +486,7 @@ html, body {
   width: 100%;
   aspect-ratio: 1;
   flex: 0 0 auto;        /* 아트워크는 정사각을 지킨다 — 세로로 눌리지 않게 */
-  border-radius: 18px;
+  border-radius: var(--radius-art-lg);
   background: var(--color-card-bg-2);
   background-size: cover;
   background-position: center;
@@ -440,12 +524,12 @@ html, body {
   z-index: 1;
   background: rgba(0,0,0,.55);
   backdrop-filter: blur(6px);
-  color: var(--color-beige);
-  font-family: var(--font-mono);
+  color: var(--color-text-on-card-dim);
+  font-family: var(--font-label);
   font-size: 8px;
   letter-spacing: .12em;
   padding: 4px 8px;
-  border-radius: 10px;
+  border-radius: var(--radius-ctl);
 }
 
 .cc-meta { display: flex; align-items: center; gap: 10px; padding: 0 2px; }
@@ -467,7 +551,7 @@ html, body {
 .cc-play {
   flex: 0 0 40px;
   width: 40px; height: 40px;
-  border: none; border-radius: 50%;
+  border: none; border-radius: var(--radius-round);
   background: var(--color-accent);
   color: #fff;
   cursor: pointer;
@@ -501,7 +585,7 @@ html, body {
 .carousel-dots button.on { width: 18px; opacity: 1; background: var(--color-accent); }
 
 @media (prefers-reduced-motion: reduce) {
-  .pair-list.carousel { scroll-behavior: auto; }
+  .pair-list.rail { scroll-behavior: auto; }
   .carousel-card, .cc-art, .cc-play, .carousel-dots button { transition: none; }
 }
 
@@ -510,17 +594,19 @@ html, body {
 .search-box input {
   flex: 1;
   border: none;
-  border-radius: 20px;
+  border-radius: var(--radius-ctl);
   padding: 12px 16px;
   font-size: 14px;
   font-family: var(--font-body);
-  background: rgba(255,255,255,.75);
-  color: #1c1c1c;
+  /* 결과 행과 같은 어두운 판 위에 — 예전의 반투명 흰 바는 테마를 따라오지 않았다 */
+  background: var(--color-card-bg);
+  color: var(--color-text-on-card);
   outline: none;
 }
+.search-box input::placeholder { color: var(--color-text-on-card); opacity: .45; }
 .search-box button {
   border: none;
-  border-radius: 20px;
+  border-radius: var(--radius-ctl);
   padding: 0 18px;
   background: var(--color-accent);
   color: #fff;
@@ -545,25 +631,30 @@ html, body {
   padding: 10px 12px;
   cursor: pointer;
 }
-.result-art { width: 48px; height: 48px; border-radius: 6px; background-size: cover; flex: 0 0 48px; }
+.result-art { width: 48px; height: 48px; border-radius: var(--radius-art); background-size: cover; flex: 0 0 48px; }
 .result-meta { min-width: 0; }
 .result-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .result-sub { font-size: 11px; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.result-year { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--color-beige); }
+.result-year {
+  margin-left: auto;
+  font-family: var(--font-label);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--color-text-on-card-dim);
+}
 
 /* ===== Player ===== */
 .player-badge-row { margin-top: 4px; }
 .mode-chip {
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .08em;
   padding: 5px 12px;
-  border-radius: 20px;
+  border-radius: var(--radius-ctl);
   background: var(--color-card-bg);
-  color: var(--color-beige);
+  color: var(--color-text-on-card-dim);
 }
-[data-theme="retro"] .mode-chip { color: #FFD9A0; }
 
 .album-card {
   align-self: center;
@@ -574,7 +665,7 @@ html, body {
 }
 .album-art {
   width: 200px; height: 200px;
-  border-radius: 12px;
+  border-radius: var(--radius-art);
   background: var(--color-card-bg-2);
   background-size: cover;
   background-position: center;
@@ -590,32 +681,32 @@ html, body {
   align-items: center;
   justify-content: flex-end;
   padding-bottom: 12px;
-  background: linear-gradient(transparent 40%, rgba(30,18,8,.78));
+  background: linear-gradient(transparent 40%, rgba(8,18,13,.80));
 }
 [data-theme="retro"] .cassette-overlay { display: flex; }
 .cassette-window {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(20,12,6,.85);
-  border: 1px solid rgba(242,230,201,.3);
-  border-radius: 8px;
+  background: rgba(6,14,10,.85);
+  border: 1px solid rgba(194,214,203,.3);
+  border-radius: var(--radius-art);
   padding: 7px 12px;
   margin-bottom: 6px;
 }
 .reel {
   width: 22px; height: 22px;
   border-radius: 50%;
-  border: 3px dashed var(--color-beige);
+  border: 3px dashed var(--color-text-on-card-dim);
 }
 .playing .reel { animation: spin 2.4s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.tape-line { width: 46px; height: 3px; background: #6b4e2e; border-radius: 2px; }
+.tape-line { width: 46px; height: 3px; background: var(--hw-line); border-radius: 2px; }
 .cassette-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-mono);   /* 카세트 각인 — RETRO 전용이라 모노 고정 */
   font-size: 9px;
   letter-spacing: .18em;
-  color: var(--color-beige);
+  color: var(--color-text-on-card-dim);
 }
 
 .song-info { text-align: center; }
@@ -629,12 +720,12 @@ html, body {
 .source-tag {
   margin-top: 8px;
   display: inline-block;
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   font-size: 10px;
   color: var(--color-text-primary);
   opacity: .55;
   border: 1px solid currentColor;
-  border-radius: 12px;
+  border-radius: var(--radius-ctl);
   padding: 2px 10px;
 }
 
@@ -657,13 +748,13 @@ html, body {
 .progress::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 12px; height: 12px;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   background: var(--color-accent);
   border: none;
 }
 .progress::-moz-range-thumb {
   width: 12px; height: 12px;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   background: var(--color-accent);
   border: none;
 }
@@ -679,7 +770,7 @@ html, body {
 }
 .ctrl-btn {
   border: none;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -698,7 +789,7 @@ html, body {
   background: var(--color-accent);
   color: #fff;
   font-size: 21px;
-  box-shadow: 0 6px 18px rgba(245,121,58,.45);
+  box-shadow: 0 6px 18px var(--color-accent-glow);
 }
 .signal-caption {
   text-align: center;
@@ -709,63 +800,139 @@ html, body {
   margin-top: -6px;
 }
 
-/* ===== Year Selector / Time Shuttle ===== */
-.year-selector {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+/* ===== Time Shuttle Console =====
+   플레이어에서 가장 큰 판이어야 한다. 예전엔 화면 맨 아래 6px 슬라이더 한 줄이라
+   앨범아트·재생버튼은 물론 장식 캡션에도 밀려 있었다 — 앱의 존재 이유인데도.
+   두 정거장(연도 + 그 시절의 가수)과 그 사이 거리를 함께 보여준다. */
+.shuttle-console {
   background: var(--color-card-bg);
   border-radius: var(--radius-card);
-  padding: 14px 16px;
+  padding: 13px 14px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  color: var(--color-text-on-card);
   transition: background-color .5s ease;
 }
-.year-side { display: flex; flex-direction: column; gap: 2px; min-width: 58px; }
-.year-side.selected { text-align: right; }
-.year-label {
-  font-family: var(--font-mono);
+.sc-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sc-title {
   font-size: 9px;
-  letter-spacing: .14em;
-  opacity: .6;
+  letter-spacing: .24em;
+  opacity: .45;
 }
-.year-side.original .year-label,
-.year-side.original .year-value { color: var(--color-beige); }
-.year-side.selected .year-label,
-.year-side.selected .year-value { color: var(--color-accent); }
-.year-value { font-size: 18px; font-weight: 700; }
+/* 두 곡 사이의 거리 — 이 앱이 파는 값 그 자체라 숫자로 못 박아 둔다 */
+.sc-gap {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.sc-stops { display: flex; align-items: center; gap: 8px; }
+
+/* 정거장. 슬라이더를 끌지 않고 눌러서도 갈 수 있어야 한다 —
+   목적지가 둘뿐인데 드래그만 강요할 이유가 없다. */
+.sc-stop {
+  flex: 0 0 86px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  padding: 3px 4px;
+  border-radius: var(--radius-ctl);
+  cursor: pointer;
+  text-align: left;
+  /* 꺼진 정거장도 '갈 수 있는 곳'이라 읽혀야 한다. 여기서 더 내리면
+     아래 .sc-artist 의 투명도와 곱해져 가수 이름이 사라진다. */
+  opacity: .62;
+  transition: opacity .35s ease;
+}
+.sc-stop.remake { align-items: flex-end; text-align: right; }
+.sc-stop.is-active { opacity: 1; }
+.sc-stop:disabled { cursor: not-allowed; }
+.sc-stop:not(:disabled):hover { opacity: .85; }
+.sc-stop.is-active:hover { opacity: 1; }
+
+.sc-era { font-size: 8px; letter-spacing: .16em; opacity: .65; }
+.sc-year {
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: .01em;
+}
+.sc-stop.is-active .sc-year { color: var(--color-accent); }
+.sc-artist {
+  font-size: 10px;
+  /* 한글 글리프가 잘리지 않을 만큼 줄상자를 준다 —
+     ellipsis 때문에 overflow:hidden 이라 line-height 가 곧 클리핑 높이다 */
+  line-height: 1.65;
+  opacity: .8;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 레일에 눈금을 깔아 두 정거장 사이가 '시간'이라는 걸 보인다 */
+.sc-rail {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-block: 9px;
+}
+.sc-rail::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 9px;
+  transform: translateY(-50%);
+  background-image: repeating-linear-gradient(90deg,
+    currentColor 0 1px, transparent 1px 7px);
+  opacity: .18;
+}
 
 .shuttle {
   -webkit-appearance: none;
   appearance: none;
-  flex: 1;
-  height: 6px;
-  border-radius: 3px;
-  background: linear-gradient(to right, var(--color-beige), var(--color-accent));
+  position: relative;
+  width: 100%;
+  height: 4px;
+  border-radius: var(--radius-ctl);
+  background: linear-gradient(to right, var(--color-text-on-card-dim), var(--color-accent));
   outline: none;
   cursor: grab;
 }
 .shuttle:active { cursor: grabbing; }
 .shuttle::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  background: #fff;
+  width: 22px; height: 22px;
+  border-radius: var(--radius-round);
+  background: var(--color-card-bg);
   border: 4px solid var(--color-accent);
-  box-shadow: 0 2px 8px rgba(0,0,0,.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,.45);
 }
 .shuttle::-moz-range-thumb {
   width: 18px; height: 18px;
-  border-radius: 50%;
-  background: #fff;
+  border-radius: var(--radius-round);
+  background: var(--color-card-bg);
   border: 4px solid var(--color-accent);
 }
+.shuttle:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 6px; }
 .shuttle:disabled { opacity: .35; cursor: not-allowed; }
-.shuttle-caption {
-  text-align: center;
+
+.sc-hint {
   font-size: 10px;
-  letter-spacing: .26em;
-  color: var(--color-text-primary);
-  opacity: .5;
-  margin-top: -8px;
+  line-height: 1.4;
+  opacity: .45;
+  text-align: center;
 }
 
 /* ===== FAB ===== */
@@ -774,7 +941,7 @@ html, body {
   right: 16px;
   bottom: calc(var(--nav-h) + 16px);
   width: 48px; height: 48px;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   border: none;
   background: var(--color-accent);
   color: #fff;
@@ -805,7 +972,7 @@ html, body {
   background: transparent;
   color: rgba(255,255,255,.55);
   font-size: 10px;
-  font-family: var(--font-mono);
+  font-family: var(--font-label);
   letter-spacing: .06em;
   display: flex;
   flex-direction: column;
@@ -817,79 +984,146 @@ html, body {
 .nav-ico { display: flex; align-items: center; justify-content: center; }
 .nav-btn.active { color: var(--color-accent); }
 
-/* ===== Glitch overlay ===== */
+/* ===== Glitch overlay — 타임슬립 =====
+   전환 자체가 이 앱에서 '시간 이동'이 실제로 일어나는 유일한 순간이다.
+   예전에는 어느 방향으로 가든 똑같은 스캔라인이었고 글자만 달랐다.
+   이제 방향이 눈에 보인다: 과거로는 줄무늬가 오른쪽으로 밀리며 차갑게,
+   현재로는 왼쪽으로 흐르며 따뜻하게. 가운데 연도는 실제로 굴러간다. */
 .glitch-overlay {
   position: absolute; inset: 0;
   z-index: 20;
-  background: rgba(10, 8, 6, .82);
+  overflow: hidden;
+  background: rgba(6, 14, 10, .93);
   display: flex;
   align-items: center;
   justify-content: center;
   animation: glitch-flicker .12s steps(2) infinite;
+  --gl: var(--color-accent);
 }
+.glitch-overlay[data-dir="back"] { --gl: var(--color-accent-cool); }
+.glitch-overlay[data-dir="fwd"]  { --gl: var(--color-accent); }
+
 .glitch-scanlines {
   position: absolute; inset: 0;
   background: repeating-linear-gradient(0deg,
     rgba(255,255,255,.07) 0 2px, transparent 2px 5px);
   animation: scan-roll .35s linear infinite;
 }
-.glitch-text {
-  color: var(--color-beige);
-  font-size: 15px;
-  letter-spacing: .3em;
-  text-shadow: 2px 0 #F5793A, -2px 0 #3AB5F5;
+/* 흘러가는 세로 줄무늬 = 지나치는 세월. 방향이 곧 이동 방향이다.
+   간격이 다른 두 겹을 겹쳐야 '지나가는 빛줄기'로 읽힌다 —
+   한 겹만 촘촘히 깔면 가로 스캔라인과 만나 모눈종이가 된다. */
+.glitch-streaks {
+  position: absolute; inset: -10% -90px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 44px, var(--gl) 44px 46px, transparent 46px 90px),
+    repeating-linear-gradient(90deg, transparent 0 15px, var(--gl) 15px 16px, transparent 16px 90px);
+  opacity: .3;
+  animation: streak-back .45s linear infinite;
+}
+.glitch-overlay[data-dir="fwd"] .glitch-streaks { animation-name: streak-fwd; }
+
+.glitch-core {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 0 24px;
+  text-align: center;
+}
+.glitch-dir {
+  font-size: 10px;
+  letter-spacing: .32em;
+  color: var(--gl);
+}
+/* 연도가 굴러가는 게 연출의 핵심 — 자릿수가 흔들리지 않게 tabular */
+.glitch-year {
+  font-family: var(--font-mono);
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  /* 색수차 — 팔레트 안의 따뜻한/차가운 짝으로 벌린다 (예전엔 팔레트 밖 파랑이었다) */
+  text-shadow: 2px 0 var(--color-accent), -2px 0 var(--color-accent-cool);
   animation: glitch-jitter .1s steps(2) infinite;
 }
+.glitch-sub {
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--gl);
+  opacity: .85;
+}
+
 @keyframes glitch-flicker { 50% { opacity: .85; } }
 @keyframes scan-roll { to { transform: translateY(5px); } }
+@keyframes streak-back { to { transform: translateX(90px); } }
+@keyframes streak-fwd  { to { transform: translateX(-90px); } }
 @keyframes glitch-jitter {
   25% { transform: translate(-2px, 1px); }
   75% { transform: translate(2px, -1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glitch-overlay,
+  .glitch-scanlines,
+  .glitch-streaks,
+  .glitch-year { animation: none; }
 }
 
 /* ===== Modal ===== */
 .modal {
   position: absolute; inset: 0;
   z-index: 30;
-  background: rgba(0,0,0,.55);
+  background: rgba(0,0,0,.66);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
 }
+/* 모달은 앱 안의 카드와 같은 판을 쓴다 — 예전의 하드코딩 크림(#FDF8EC)은
+   민트 화면 위에 뜬 이물질처럼 보였다. 이제 테마를 따라간다. */
 .modal-card {
   width: 100%;
-  background: #FDF8EC;
-  border-radius: 16px;
+  background: var(--color-card-bg);
+  border-radius: var(--radius-card);
+  /* RETRO 는 바디도 카드도 어두워서 배경만으로는 카드 경계가 사라진다 — 테두리로 띄운다 */
+  border: 1px solid rgba(255,255,255,.13);
+  box-shadow: 0 18px 50px rgba(0,0,0,.5);
   padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  color: #2a2a2a;
+  color: var(--color-text-on-card);
 }
 .modal-card h3 { font-size: 17px; margin-bottom: 4px; }
 .field-label { font-size: 12px; font-weight: 600; margin-top: 6px; }
 .modal-card input, .modal-card select {
-  border: 1px solid #d8cfb8;
-  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: var(--radius-field);
   padding: 10px 12px;
   font-size: 13px;
   font-family: var(--font-body);
-  background: #fff;
+  background: var(--color-card-bg-2);
+  color: var(--color-text-on-card);
   outline: none;
 }
-.field-help { font-size: 11px; color: #8a8068; line-height: 1.5; }
+.modal-card input:focus-visible,
+.modal-card select:focus-visible { border-color: var(--color-accent); }
+.modal-card input::placeholder { color: var(--color-text-on-card); opacity: .38; }
+.field-help { font-size: 11px; color: var(--color-text-on-card); opacity: .6; line-height: 1.5; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
 .btn {
   border: none;
-  border-radius: 20px;
+  border-radius: var(--radius-ctl);
   padding: 9px 18px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
 .btn.primary { background: var(--color-accent); color: #fff; }
-.btn.ghost { background: transparent; color: #6b6352; }
+.btn.ghost { background: transparent; color: var(--color-text-on-card); opacity: .7; }
 
 /* ===== Toast ===== */
 .toast {
@@ -897,11 +1131,11 @@ html, body {
   left: 50%;
   bottom: calc(var(--nav-h) + 76px);
   transform: translateX(-50%);
-  background: rgba(20,20,20,.9);
-  color: #fff;
+  background: var(--color-nav-bg);
+  color: var(--color-text-on-card);
   font-size: 12px;
   padding: 10px 18px;
-  border-radius: 20px;
+  border-radius: var(--radius-ctl);
   z-index: 25;
   white-space: nowrap;
 }
@@ -959,16 +1193,14 @@ html, body {
   background: var(--color-bg-primary);
 }
 
-/* 상단 탭 바 (OUTPUT / INPUT / SYNC …) 처럼 각지게 */
+/* 상단 탭 바 (OUTPUT / INPUT / SYNC …) 처럼. 각진 모서리는 --radius-ctl 이 이미 준다. */
 [data-theme="retro"] .view-toggle {
   background: var(--hw-panel);
-  border-radius: 4px;
   padding: 3px;
   gap: 3px;
   border: 1px solid var(--hw-line);
 }
 [data-theme="retro"] .vt-btn {
-  border-radius: 2px;
   color: var(--color-text-primary);
   opacity: .5;
   font-size: 10px;
@@ -1000,37 +1232,28 @@ html, body {
 }
 
 [data-theme="retro"] .layout-btn {
-  border-radius: 3px;
   border: 1px solid var(--hw-line);
   background: var(--hw-panel);
   opacity: 1;
   color: var(--color-text-primary);
 }
 
-/* 디스플레이 모듈: 차콜 패널 + 얇은 테두리 */
+/* 디스플레이 모듈: 바디보다 어두운 패널 + 얇은 테두리.
+   모서리는 --radius-* 토큰이 이미 각지게 잡아준다 — 여기서 px 를 다시 쓰지 않는다. */
 [data-theme="retro"] .pair-card,
 [data-theme="retro"] .album-card {
-  border-radius: var(--radius-card);
   border: 1px solid #000;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
 }
-[data-theme="retro"] .pair-art,
-[data-theme="retro"] .cc-art,
-[data-theme="retro"] .album-art { border-radius: 4px; }
 
 /* 주요 버튼: RECORD 버튼처럼 각진 주황 */
 [data-theme="retro"] .btn.primary,
 [data-theme="retro"] .search-box button {
-  border-radius: 3px;
   letter-spacing: .04em;
 }
-[data-theme="retro"] .cc-play {
-  border-radius: 4px;
-}
 
-/* 재생 컨트롤: 기구 버튼처럼 회색 패널 위에 */
+/* 재생 컨트롤: 기구 버튼처럼 패널 위에 */
 [data-theme="retro"] .ctrl-btn {
-  border-radius: 4px;
   background: var(--hw-panel);
   color: var(--color-text-primary);
   border: 1px solid var(--hw-line);
@@ -1038,12 +1261,11 @@ html, body {
 [data-theme="retro"] .ctrl-btn.play {
   background: var(--color-accent);
   color: #fff;
-  border-color: #C33C18;
+  border-color: var(--color-accent-deep);
 }
 
 /* 캐러셀 뱃지 = 기기 각인 */
 [data-theme="retro"] .cc-badge {
-  border-radius: 2px;
   background: var(--color-accent);
   color: #fff;
   backdrop-filter: none;
@@ -1071,7 +1293,7 @@ html, body {
   aspect-ratio: 1;
   background: var(--color-card-bg);
   border: 1px solid #000;
-  border-radius: 5px;
+  border-radius: var(--radius-art);
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 2px 0 rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.07);
@@ -1097,13 +1319,14 @@ html, body {
 .rp-led {
   position: absolute; top: 7px; left: 7px; z-index: 2;
   width: 5px; height: 5px; border-radius: 50%;
-  background: var(--hw-led, #E03A2F);
-  box-shadow: 0 0 5px rgba(224,58,47,.85);
+  background: var(--hw-led);
+  box-shadow: 0 0 5px var(--color-accent-glow);
 }
 .rp-idx {
   position: absolute; top: 6px; right: 8px; z-index: 2;
   font-size: 9px;
-  color: rgba(237,235,229,.5);
+  color: var(--color-text-on-card);
+  opacity: .5;
 }
 .rp-meta {
   position: absolute; left: 8px; right: 8px; bottom: 7px; z-index: 2;
@@ -1111,7 +1334,7 @@ html, body {
 .rp-title {
   font-size: 11px;
   font-weight: 700;
-  color: #EDEBE5;
+  color: var(--color-text-on-card);
   line-height: 1.25;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -1122,7 +1345,10 @@ html, body {
 }
 
 /* ===== WINAMP — 스킨 전체 재현 =====
-   스킨 복각이라 테마 토큰을 쓰지 않고 90년대 색을 그대로 박는다. */
+   형태(베벨 창·LCD·EQ·플레이리스트)는 90년대 원본 그대로 두고, 색만 ditto 팔레트로 다시 칠했다.
+   원래의 스틸블루 크롬 + #22E03A 형광 초록은 앱의 어떤 화면과도 이어지지 않아
+   이 레이아웃만 다른 앱처럼 보이게 만들고 있었다.
+   크롬은 RETRO 의 어두운 초록 기구물, 디스플레이는 민트 인광, 조작 중인 값만 오렌지. */
 .pair-list.winamp {
   display: flex;
   flex-direction: column;
@@ -1130,12 +1356,13 @@ html, body {
   background: none;
   border: none;
   box-shadow: none;
-  --wa-chrome: #3E4A5B;
-  --wa-chrome-hi: #59667A;
-  --wa-chrome-lo: #2A3340;
-  --wa-green: #22E03A;
-  --wa-lcd: #0B0F0C;
-  --wa-yellow: #E4D34A;
+  --wa-chrome: #434A47;       /* 기구물 본체 — 거의 무채색 */
+  --wa-chrome-hi: #5B635F;    /* 베벨 윗면 */
+  --wa-chrome-lo: #262B29;    /* 베벨 아랫면 */
+  --wa-phosphor: #5CC294;     /* LCD 인광 — 창 안쪽에서만 쓴다 */
+  --wa-lcd: #08110C;          /* LCD 바탕 */
+  --wa-live: #86DCB4;         /* 조작 중인 값 — EQ 손잡이·선택행. 인광 계열로 둔다:
+                                 여기에 주황을 쓰면 인광과 보색으로 부딪혀 눈이 아프다 */
 }
 .wa-win {
   background: var(--wa-chrome);
@@ -1153,7 +1380,7 @@ html, body {
   gap: 5px;
   height: 15px;
   padding: 0 3px;
-  background: linear-gradient(180deg, #4E6E9E, #2E4468);
+  background: linear-gradient(180deg, #3F4744, #232927);
   border-bottom: 1px solid var(--wa-chrome-lo);
 }
 .wa-title-line {
@@ -1168,13 +1395,13 @@ html, body {
   font-size: 8px;
   font-weight: 700;
   letter-spacing: .16em;
-  color: #DDE6F2;
+  color: #DDE4E1;
 }
 .wa-title-btns {
   flex: 0 0 auto;
   font-size: 7px;
   letter-spacing: .12em;
-  color: #C2CEDE;
+  color: #A4ADAA;
 }
 
 /* ================= ① 메인 플레이어 ================= */
@@ -1196,21 +1423,22 @@ html, body {
   font-family: var(--font-mono);
   font-size: 6px;
   line-height: 1.15;
-  color: var(--wa-green);
+  color: var(--wa-phosphor);
   opacity: .75;
 }
 .wa-kbps { margin-top: 2px; opacity: .8; }
 
 .wa-clock { display: flex; align-items: flex-start; gap: 3px; }
-.wa-play-ico { color: var(--wa-green); font-size: 9px; line-height: 1; margin-top: 4px; }
+.wa-play-ico { color: var(--wa-phosphor); font-size: 9px; line-height: 1; margin-top: 4px; }
 .wa-time-big {
   font-family: var(--font-mono);
   font-size: 26px;
   font-weight: 700;
   line-height: 1;
-  color: var(--wa-green);
+  color: var(--wa-phosphor);
   letter-spacing: .02em;
-  text-shadow: 0 0 6px rgba(34,224,58,.45);
+  /* 인광 번짐은 흔적만. 큰 글자에 강한 글로우를 걸면 획이 뭉개져 눈이 먼저 지친다 */
+  text-shadow: 0 0 4px rgba(92,194,148,.28);
 }
 
 .wa-lcd-right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
@@ -1220,7 +1448,7 @@ html, body {
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 9px;
-  color: var(--wa-green);
+  color: var(--wa-phosphor);
   animation: wa-scroll 13s linear infinite;
 }
 @keyframes wa-scroll {
@@ -1233,23 +1461,23 @@ html, body {
   gap: 4px;
   font-family: var(--font-mono);
   font-size: 7px;
-  color: #1F9C2C;
+  color: #2E8963;
 }
 .wa-num {
-  background: #14351A;
-  color: var(--wa-green);
+  background: #0E2A1E;
+  color: var(--wa-phosphor);
   padding: 0 2px;
   font-weight: 700;
 }
 .wa-chan { margin-left: auto; opacity: .55; }
-.wa-chan em { font-style: normal; color: var(--wa-green); opacity: 1; }
+.wa-chan em { font-style: normal; color: var(--wa-phosphor); opacity: 1; }
 
 /* 스펙트럼 애널라이저 */
 .wa-viz { display: flex; align-items: flex-end; gap: 1px; height: 17px; }
 .wa-viz i {
   flex: 1;
   height: var(--h);
-  background: linear-gradient(180deg, #9BF06A, #22E03A 45%, #0E8A22);
+  background: linear-gradient(180deg, #8FD9B4, #5CC294 45%, #1D6B4C);
   animation: wa-bounce 780ms ease-in-out infinite alternate;
   animation-delay: var(--d);
 }
@@ -1260,16 +1488,16 @@ html, body {
 .wa-slider {
   position: relative;
   height: 9px;
-  background: linear-gradient(180deg, var(--wa-chrome-lo), #47535F);
-  border: 1px solid #1E252E;
+  background: linear-gradient(180deg, var(--wa-chrome-lo), #4E5653);
+  border: 1px solid #131615;
 }
 .wa-vol { flex: 1.6; }
 .wa-bal { flex: 1; }
 .wa-slider i {
   position: absolute; top: -1px; bottom: -1px;
   width: 11px;
-  background: linear-gradient(180deg, #8E9AAA, #5A6572);
-  border: 1px solid #222A34;
+  background: linear-gradient(180deg, #6C7673, #464E4B);
+  border: 1px solid #131615;
 }
 .wa-vol i { left: 62%; }
 .wa-bal i { left: 44%; }
@@ -1278,27 +1506,27 @@ html, body {
   font-family: var(--font-mono);
   font-size: 7px;
   letter-spacing: .06em;
-  color: #97A4B4;
+  color: #8A918E;
   background: var(--wa-chrome-lo);
-  border: 1px solid #1E252E;
+  border: 1px solid #131615;
   border-top-color: var(--wa-chrome-hi);
   padding: 2px 5px;
   cursor: pointer;
 }
-.wa-tog.on { color: var(--wa-green); }
+.wa-tog.on { color: var(--wa-phosphor); }
 
 /* 재생 위치 바 */
 .wa-seek {
   position: relative;
   height: 10px;
-  background: linear-gradient(180deg, #222A34, #3A4450);
-  border: 1px solid #1B222A;
+  background: linear-gradient(180deg, #131615, #3A4450);
+  border: 1px solid #111413;
 }
 .wa-seek i {
   position: absolute; top: -1px; bottom: -1px; left: 18%;
   width: 28px;
-  background: linear-gradient(180deg, #8E9AAA, #5A6572);
-  border: 1px solid #222A34;
+  background: linear-gradient(180deg, #6C7673, #464E4B);
+  border: 1px solid #131615;
 }
 
 .wa-transport { display: flex; align-items: center; gap: 2px; }
@@ -1307,14 +1535,14 @@ html, body {
   min-width: 22px;
   height: 17px;
   font-size: 8px;
-  color: #DCE4EE;
-  background: linear-gradient(180deg, #59667A, #3A4553);
-  border: 1px solid #1E252E;
-  border-top-color: #6E7C90;
+  color: #C7CFCC;
+  background: linear-gradient(180deg, #5B635F, #363C3A);
+  border: 1px solid #131615;
+  border-top-color: #6B7370;
   cursor: pointer;
   font-family: var(--font-mono);
 }
-.wa-tb:active { background: linear-gradient(180deg, #3A4553, #59667A); }
+.wa-tb:active { background: linear-gradient(180deg, #363C3A, #5B635F); }
 .wa-eject { margin-right: 4px; }
 .wa-transport .wa-tog:last-child { margin-left: auto; }
 
@@ -1325,8 +1553,8 @@ html, body {
   flex: 1;
   height: 9px;
   background: repeating-linear-gradient(90deg,
-    rgba(34,224,58,.5) 0 1px, transparent 1px 7px);
-  border-bottom: 1px solid rgba(34,224,58,.35);
+    rgba(92,194,148,.5) 0 1px, transparent 1px 7px);
+  border-bottom: 1px solid rgba(92,194,148,.35);
 }
 .wa-presets { margin-left: auto; }
 
@@ -1346,29 +1574,29 @@ html, body {
   margin-right: 2px;
   font-family: var(--font-mono);
   font-size: 5.5px;
-  color: var(--wa-green);
+  color: var(--wa-phosphor);
   opacity: .75;
 }
-.wa-eq-div { width: 1px; align-self: stretch; background: rgba(34,224,58,.22); margin: 0 2px; }
+.wa-eq-div { width: 1px; align-self: stretch; background: rgba(92,194,148,.22); margin: 0 2px; }
 
 .wa-eq-band { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
 .wa-eq-slider {
   position: relative;
   width: 9px;
   height: 66px;
-  background: linear-gradient(90deg, transparent 3px, #17301C 3px 6px, transparent 6px);
-  border-bottom: 1px solid rgba(34,224,58,.25);
+  background: linear-gradient(90deg, transparent 3px, #10231A 3px 6px, transparent 6px);
+  border-bottom: 1px solid rgba(92,194,148,.25);
 }
 .wa-eq-slider i {
   position: absolute; left: -1px; right: -1px;
   height: 8px;
-  background: linear-gradient(180deg, #F2E67A, var(--wa-yellow) 55%, #A89A22);
-  border: 1px solid #6B6115;
+  background: linear-gradient(180deg, #A9E9C8, var(--wa-live) 55%, #3E9670);
+  border: 1px solid #2C6B4F;
 }
 .wa-eq-hz {
   font-family: var(--font-mono);
   font-size: 5.5px;
-  color: var(--wa-green);
+  color: var(--wa-phosphor);
   opacity: .8;
   white-space: nowrap;
 }
@@ -1382,7 +1610,7 @@ html, body {
   max-height: 176px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #59667A #0A0A0A;
+  scrollbar-color: #5B635F #0A0A0A;
 }
 .wa-row {
   display: flex;
@@ -1392,12 +1620,14 @@ html, body {
   font-family: var(--font-mono);
   font-size: 10px;
   line-height: 1.55;
-  color: var(--wa-green);
+  color: var(--wa-phosphor);
   cursor: pointer;
   white-space: nowrap;
 }
-.wa-row:hover { background: #0E2412; }
-.wa-row.on { background: #0027C4; color: #fff; }   /* 선택행 = 파랑 반전 */
+.wa-row:hover { background: #10261C; }
+/* 선택행 = 반전. 원본은 파랑이었지만 그건 초록 LCD와 색상이 달라 성립하던 것이고,
+   주황으로 바꾸면 인광과 보색이라 더 심하게 부딪힌다. 인광 계열 안에서 반전시킨다. */
+.wa-row.on { background: #2A6A4E; color: #EAF7F0; }
 .wa-idx { flex: 0 0 16px; text-align: right; }
 .wa-name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
 .wa-dur { flex: 0 0 auto; }
@@ -1414,10 +1644,10 @@ html, body {
   font-size: 6.5px;
   line-height: 1.1;
   text-align: center;
-  color: #C6D0DE;
-  background: linear-gradient(180deg, #59667A, #3A4553);
-  border: 1px solid #1E252E;
-  border-top-color: #6E7C90;
+  color: #AFB8B5;
+  background: linear-gradient(180deg, #5B635F, #363C3A);
+  border: 1px solid #131615;
+  border-top-color: #6B7370;
   padding: 3px 4px;
   cursor: pointer;
 }
@@ -1426,7 +1656,7 @@ html, body {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: 9px;
-  color: var(--wa-green);
+  color: var(--wa-phosphor);
   background: var(--wa-lcd);
   border: 1px solid #000;
   padding: 2px 5px;
@@ -1434,7 +1664,7 @@ html, body {
 .wa-pl-mini {
   font-size: 7px;
   letter-spacing: .06em;
-  color: #C6D0DE;
+  color: #AFB8B5;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1481,7 +1711,7 @@ html, body {
 .tn-art {
   width: 118px; height: 118px;
   flex: 0 0 auto;
-  border-radius: 4px;
+  border-radius: var(--radius-art);
   background: var(--color-card-bg-2);
   background-size: cover;
   background-position: center;
@@ -1497,11 +1727,13 @@ html, body {
 
 /* ===== DIAL — 부채꼴 회전 휠 ===== */
 .pair-list.dial {
-  height: 330px;
+  /* 높이 = 항목 7칸(66px), 위아래 패딩 = (높이 - 한 칸)/2 로 활성 항목이 정확히 중앙에 온다.
+     예전 330px 는 두 칸 남짓만 보여주고 아래로 큰 공백을 남겼다. */
+  height: 462px;
   overflow-y: auto;
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
-  padding-block: 132px;
+  padding-block: 198px;
   mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent);
   -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent);
 }
@@ -1527,7 +1759,7 @@ html, body {
 .dl-art {
   flex: 0 0 48px;
   width: 48px; height: 48px;
-  border-radius: 4px;
+  border-radius: var(--radius-art);
   background: var(--color-card-bg-2);
   background-size: cover;
   background-position: center;
@@ -1554,9 +1786,35 @@ html, body {
 }
 .dl-item.is-active .dl-year { color: var(--color-accent); opacity: 1; font-weight: 700; }
 
-/* ===== TWIN — 원곡·리메이크 두 줄 맞물림 ===== */
+/* ===== TWIN — 원곡·리메이크 두 줄 맞물림 =====
+   한 화면에 두 시대가 같이 선다. 팔레트는 하나지만 위쪽 줄은 .era-past 를 입어
+   픽셀 서체 · 각진 모서리로, 아래쪽은 .era-present 로 렌더된다. */
 .twin-side { position: relative; }
-.twin-side + .twin-side { margin-top: 14px; }
+
+/* 두 줄 사이의 다리 — 지금 맞물린 두 곡이 몇 년 떨어져 있는지 */
+.twin-bridge {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 2px 7px;
+}
+.twin-bridge::before,
+.twin-bridge::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: .18;
+  color: var(--color-text-primary);
+}
+.tb-gap {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--color-accent);
+  white-space: nowrap;
+}
 .tw-label {
   display: block;
   font-size: 9px;
@@ -1597,7 +1855,7 @@ html, body {
 .tw-art {
   width: 150px; height: 150px;
   flex: 0 0 auto;
-  border-radius: 6px;
+  border-radius: var(--radius-art);
   background: var(--color-card-bg-2);
   background-size: cover;
   background-position: center;
@@ -1625,7 +1883,7 @@ html, body {
   color: #fff;
   font-size: 10px;
   padding: 2px 6px;
-  border-radius: 3px;
+  border-radius: var(--radius-ctl);
 }
 /* 두 줄이 같은 곡을 가리키고 있다는 표시 */
 .twin-side.original .tw-card.is-active .tw-art { outline: 2px solid var(--color-text-primary); outline-offset: 2px; }
@@ -1642,19 +1900,30 @@ html, body {
    (테마 블록보다 뒤에 와야 같은 특정도에서 이긴다)
    ============================================================ */
 [data-skin="winamp"] {
-  --color-bg-primary: #232A33;          /* 창이 얹히는 바탕 */
-  --color-bg-deep: #1A1F26;
-  --color-card-bg: #3E4A5B;
-  --color-card-bg-2: #2A3340;
-  --color-nav-bg: #1A1F26;
-  --color-text-primary: #C6D0DE;
-  --color-text-on-card: #DDE6F2;
-  --color-text-muted: #7E8B9C;
-  --color-accent: #22E03A;
-  --color-progress-track: rgba(198,208,222,.18);
-  --color-progress-fill: #22E03A;
+  /* 기구물은 거의 무채색(채도 5% 안팎)이다. 90년대 원본이 눈에 편했던 이유는
+     '차가운 회색 섀시 + 작고 밝은 초록 디스플레이' 라는 색상 대비였는데,
+     섀시까지 초록으로 칠하면 화면 전체가 한 가지 색으로 진동해서 눈이 빨리 지친다.
+     그래서 섀시는 채도를 빼서 뒤로 물리고, 인광은 창 안쪽에만 남긴다. */
+  --color-bg-primary: #1A1D1C;          /* 창이 얹히는 바탕 */
+  --color-bg-deep: #131615;
+  --color-card-bg: #434A47;
+  --color-card-bg-2: #262B29;
+  --color-nav-bg: #131615;
+  --color-text-primary: #C7CFCC;
+  --color-text-on-card: #DDE4E1;
+  --color-text-muted: #8A918E;
+  /* 오렌지는 앱 전체에 하나뿐이라는 규칙은 스킨 안에서도 지킨다 —
+     여기서 액센트를 갈아끼우면 하단 내비·재생 버튼만 남의 앱이 된다. */
+  --color-progress-track: rgba(199,207,204,.18);
+  --color-progress-fill: var(--color-accent);
   --grain-opacity: 0;
-  --radius-card: 0px;                   /* 90년대 창에는 둥근 모서리가 없다 */
+  /* 90년대 창에는 둥근 모서리가 없다 */
+  --radius-card: 0px;
+  --radius-art: 0px;
+  --radius-art-lg: 0px;
+  --radius-ctl: 0px;
+  --radius-field: 0px;
+  --radius-round: 0px;
 }
 
 /* 바탕: 하이라이트 그라데이션을 걷고 납작한 데스크톱으로 */
@@ -1666,7 +1935,7 @@ html, body {
 /* ----- 헤더 = 창 제목 표시줄 ----- */
 [data-skin="winamp"] .header {
   position: relative;
-  background: linear-gradient(180deg, #4E6E9E, #2E4468);
+  background: linear-gradient(180deg, #3F4744, #232927);
   border-bottom: 1px solid #1B2432;
 }
 /* 제목 양옆으로 뻗는 가로 줄무늬 */
@@ -1685,45 +1954,48 @@ html, body {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: .2em;
-  color: #DDE6F2;
-  background: linear-gradient(180deg, #4E6E9E, #2E4468);
+  color: #DDE4E1;
+  background: linear-gradient(180deg, #3F4744, #232927);
   padding: 0 10px;
 }
-[data-skin="winamp"] .logo-dot { color: #22E03A; }
+[data-skin="winamp"] .logo-dot { color: #5CC294; }
 
 /* 헤더 아이콘 버튼 = 크롬 사각 버튼 */
 [data-skin="winamp"] .icon-btn {
   z-index: 1;
   width: 22px; height: 17px;
   border-radius: 0;
-  color: #DCE4EE;
-  background: linear-gradient(180deg, #59667A, #3A4553);
-  border: 1px solid #1E252E;
-  border-top-color: #6E7C90;
+  color: #C7CFCC;
+  background: linear-gradient(180deg, #5B635F, #363C3A);
+  border: 1px solid #131615;
+  border-top-color: #6B7370;
 }
-[data-skin="winamp"] .icon-btn:hover { background: linear-gradient(180deg, #6B7A90, #47535F); }
-[data-skin="winamp"] .icon-btn:active { background: linear-gradient(180deg, #3A4553, #59667A); }
+[data-skin="winamp"] .icon-btn:hover { background: linear-gradient(180deg, #6B7370, #4E5653); }
+[data-skin="winamp"] .icon-btn:active { background: linear-gradient(180deg, #363C3A, #5B635F); }
 
-/* ----- 캡션 = 초록 LCD 글자 ----- */
+/* ----- 캡션 -----
+   히어로 문구는 창 밖 바탕에 놓인 그냥 글이다 — 인광으로 칠하면 LCD도 아닌 자리에서
+   초록이 번져 화면 전체가 형광이 된다. 상태 표시줄(list-caption)만 표시등과 함께 인광. */
 [data-skin="winamp"] .hero-caption,
 [data-skin="winamp"] .list-caption {
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: .16em;
-  color: #22E03A;
   opacity: 1;
 }
-/* 레트로가 걸어둔 빨간 표시등을 초록으로 */
+[data-skin="winamp"] .hero-caption { color: #8A918E; }
+[data-skin="winamp"] .list-caption { color: var(--wa-phosphor, #5CC294); }
+/* 표시등은 앱 공통 오렌지 — 인광은 창 안쪽 글자에만 쓴다 */
 [data-skin="winamp"] .list-caption::before {
-  background: #22E03A;
-  box-shadow: 0 0 4px rgba(34,224,58,.8);
+  background: var(--color-accent);
+  box-shadow: 0 0 4px var(--color-accent-glow);
 }
 
 /* ----- 시대 토글 = 크롬 버튼 묶음 ----- */
 [data-skin="winamp"] .view-toggle {
-  background: #3E4A5B;
-  border: 1px solid #1E252E;
-  border-top-color: #59667A;
+  background: #434A47;
+  border: 1px solid #131615;
+  border-top-color: #5B635F;
   border-radius: 0;
   padding: 3px;
   gap: 3px;
@@ -1735,16 +2007,16 @@ html, body {
   letter-spacing: .1em;
   padding: 4px 11px;
   opacity: 1;
-  color: #97A4B4;
-  background: linear-gradient(180deg, #59667A, #3A4553);
-  border: 1px solid #1E252E;
-  border-top-color: #6E7C90;
+  color: #8A918E;
+  background: linear-gradient(180deg, #5B635F, #363C3A);
+  border: 1px solid #131615;
+  border-top-color: #6B7370;
 }
 [data-skin="winamp"] .vt-btn.active {
-  color: #22E03A;
-  background: #0B0F0C;
+  color: #5CC294;
+  background: #08110C;
   border-color: #000;
-  text-shadow: 0 0 5px rgba(34,224,58,.5);
+  text-shadow: 0 0 5px rgba(92,194,148,.5);
 }
 
 /* ----- tweak 버튼 = 크롬 사각 버튼 ----- */
@@ -1752,75 +2024,85 @@ html, body {
   width: 26px; height: 22px;
   border-radius: 0;
   opacity: 1;
-  color: #DCE4EE;
-  background: linear-gradient(180deg, #59667A, #3A4553);
-  border: 1px solid #1E252E;
-  border-top-color: #6E7C90;
+  color: #C7CFCC;
+  background: linear-gradient(180deg, #5B635F, #363C3A);
+  border: 1px solid #131615;
+  border-top-color: #6B7370;
 }
 
 /* ----- 하단 내비 = 크롬 바 ----- */
 [data-skin="winamp"] .bottom-nav {
-  background: linear-gradient(180deg, #3E4A5B, #2A3340);
-  border-top: 1px solid #59667A;
+  background: linear-gradient(180deg, #434A47, #262B29);
+  border-top: 1px solid #5B635F;
 }
 [data-skin="winamp"] .nav-btn {
-  color: #8E9BAB;
+  color: #7E8582;
   font-size: 9px;
   letter-spacing: .1em;
 }
+/* 하단 내비는 스킨이 아니라 앱 크롬이다 — 활성색은 다른 화면과 같은 오렌지로 둔다 */
 [data-skin="winamp"] .nav-btn.active {
-  color: #22E03A;
-  text-shadow: 0 0 5px rgba(34,224,58,.5);
+  color: var(--color-accent);
+  text-shadow: 0 0 5px var(--color-accent-glow);
 }
 
-/* ----- 나머지 화면(검색·라이브러리·플레이어)도 같은 옷을 입는다 ----- */
+/* ----- 나머지 화면(검색·라이브러리·플레이어)도 같은 옷을 입는다 -----
+   단, 인광 초록은 여기까지 따라오지 않는다. 진짜 LCD 창(.wa-*) 안에서만 빛나야
+   '디스플레이'로 읽힌다. 긴 본문까지 형광 초록으로 칠하면 화면 전체가 CRT가 되어
+   읽는 내내 눈이 부신다 — 원본 WINAMP 도 초록은 작은 표시창에만 썼다. */
 [data-skin="winamp"] .search-box input,
 [data-skin="winamp"] .modal-card input,
 [data-skin="winamp"] .modal-card select {
   border-radius: 0;
-  background: #0B0F0C;
-  color: #22E03A;
+  background: #0F1412;
+  color: #C7CFCC;
   border: 1px solid #000;
   font-family: var(--font-mono);
 }
+[data-skin="winamp"] .search-box input::placeholder { color: #7E8582; opacity: 1; }
 [data-skin="winamp"] .search-box button,
 [data-skin="winamp"] .btn {
   border-radius: 0;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: .08em;
-  background: linear-gradient(180deg, #59667A, #3A4553);
-  color: #DCE4EE;
-  border: 1px solid #1E252E;
-  border-top-color: #6E7C90;
+  background: linear-gradient(180deg, #5B635F, #363C3A);
+  color: #C7CFCC;
+  border: 1px solid #131615;
+  border-top-color: #6B7370;
 }
-[data-skin="winamp"] .btn.primary { background: linear-gradient(180deg, #2FA83F, #1B7B29); color: #EAFBEC; }
+/* 확인 버튼은 스킨 안에서도 앱 공통 오렌지 — 되돌릴 수 없는 동작의 색은 화면마다 달라지면 안 된다 */
+[data-skin="winamp"] .btn.primary {
+  background: linear-gradient(180deg, var(--color-accent), var(--color-accent-deep));
+  color: #fff;
+}
 [data-skin="winamp"] .search-hint,
-[data-skin="winamp"] .field-help { color: #8E9BAB; }
+[data-skin="winamp"] .field-help { color: #7E8582; }
 [data-skin="winamp"] .section-title,
 [data-skin="winamp"] .song-title {
   font-family: var(--font-mono);
-  color: #22E03A;
+  color: #DDE4E1;
   letter-spacing: .04em;
 }
+/* 모드 칩은 작은 표시창이라 인광을 남긴다 — 작고 짧은 글자에서만 눈이 편하다 */
 [data-skin="winamp"] .mode-chip {
   border-radius: 0;
   font-family: var(--font-mono);
-  background: #0B0F0C;
-  color: #22E03A;
+  background: #08110C;
+  color: var(--wa-phosphor, #5CC294);
   border: 1px solid #000;
 }
 [data-skin="winamp"] .album-card,
 [data-skin="winamp"] .pair-card,
 [data-skin="winamp"] .modal-card {
   border-radius: 0;
-  border: 1px solid #1E252E;
-  border-top-color: #59667A;
+  border: 1px solid #131615;
+  border-top-color: #5B635F;
 }
 [data-skin="winamp"] .toast {
   border-radius: 0;
   font-family: var(--font-mono);
-  background: #0B0F0C;
-  color: #22E03A;
-  border: 1px solid #22E03A;
+  background: #262B29;
+  color: #DDE4E1;
+  border: 1px solid #5B635F;
 }

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <!-- ?v= : 브라우저 캐시 무효화용 버전. 자산을 고쳤는데 반영이 안 되면 숫자를 올린다. -->
-  <link rel="stylesheet" href="css/style.css?v=15" />
+  <link rel="stylesheet" href="css/style.css?v=23" />
 </head>
 <body>
   <div id="app" class="phone">
@@ -99,18 +99,35 @@
       </section>
       <p class="signal-caption mono">SIGNAL POWER <span id="signal-bars">▁▃▅▇</span></p>
 
-      <section class="year-selector">
-        <div class="year-side original">
-          <span class="year-label">ORIGINAL</span>
-          <span class="year-value mono" id="year-original">19—</span>
+      <!-- 타임 셔틀 콘솔 — 이 앱의 존재 이유. 두 정거장(원곡·리메이크) 사이를
+           듣던 위치 그대로 오간다. 정거장은 눌러서도 갈 수 있다. -->
+      <section class="shuttle-console">
+        <div class="sc-head">
+          <span class="sc-title mono">TIME SHUTTLE</span>
+          <span class="sc-gap mono" id="shuttle-gap"></span>
         </div>
-        <input type="range" id="shuttle" class="shuttle" min="0" max="100" value="100" step="1" />
-        <div class="year-side selected">
-          <span class="year-label">SELECTED</span>
-          <span class="year-value mono" id="year-remake">20—</span>
+
+        <div class="sc-stops">
+          <button type="button" class="sc-stop original" id="stop-original">
+            <span class="sc-era mono">ORIGINAL</span>
+            <span class="sc-year mono" id="year-original">19—</span>
+            <span class="sc-artist" id="artist-original">—</span>
+          </button>
+
+          <span class="sc-rail">
+            <input type="range" id="shuttle" class="shuttle" min="0" max="100" value="100" step="1"
+                   aria-label="타임 셔틀 — 원곡과 리메이크 사이 이동" />
+          </span>
+
+          <button type="button" class="sc-stop remake" id="stop-remake">
+            <span class="sc-era mono">REMAKE</span>
+            <span class="sc-year mono" id="year-remake">20—</span>
+            <span class="sc-artist" id="artist-remake">—</span>
+          </button>
         </div>
+
+        <p class="sc-hint" id="shuttle-caption">양쪽 어디로 옮겨도 듣던 위치는 그대로예요</p>
       </section>
-      <p class="shuttle-caption mono" id="shuttle-caption">⟵ TIME SHUTTLE ⟶</p>
     </main>
 
     <!-- ===== FAB ===== -->
@@ -123,10 +140,17 @@
       <button class="nav-btn" data-screen="library"><span class="nav-ico" data-icon="heart" data-icon-size="18"></span><span>Library</span></button>
     </nav>
 
-    <!-- ===== Glitch overlay (time-slip effect) ===== -->
-    <div id="glitch" class="glitch-overlay hidden">
+    <!-- ===== Glitch overlay (time-slip effect) =====
+         data-dir="back|fwd" 이 스캔라인·줄무늬가 흐르는 방향과 색을 정한다.
+         가운데 연도는 출발 연도에서 도착 연도로 실제로 굴러간다. -->
+    <div id="glitch" class="glitch-overlay hidden" data-dir="back">
       <div class="glitch-scanlines"></div>
-      <div class="glitch-text mono" id="glitch-text">REWINDING…</div>
+      <div class="glitch-streaks"></div>
+      <div class="glitch-core">
+        <span class="glitch-dir mono" id="glitch-dir">REWINDING</span>
+        <span class="glitch-year mono" id="glitch-year">19—</span>
+        <span class="glitch-sub mono" id="glitch-sub"></span>
+      </div>
     </div>
 
     <!-- ===== Settings Modal ===== -->
@@ -156,11 +180,11 @@
   </div>
 
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="js/config.js?v=15"></script>
-  <script src="js/data.js?v=15"></script>
-  <script src="js/itunes.js?v=15"></script>
-  <script src="js/youtube.js?v=15"></script>
-  <script src="js/player.js?v=15"></script>
-  <script src="js/app.js?v=15"></script>
+  <script src="js/config.js?v=23"></script>
+  <script src="js/data.js?v=23"></script>
+  <script src="js/itunes.js?v=23"></script>
+  <script src="js/youtube.js?v=23"></script>
+  <script src="js/player.js?v=23"></script>
+  <script src="js/app.js?v=23"></script>
 </body>
 </html>

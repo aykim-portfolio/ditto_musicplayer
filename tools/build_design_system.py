@@ -204,19 +204,29 @@ SLIDERS = """
     <span class="time mono">0:12</span><span class="time mono">0:29</span>
   </div>
 </section>
-<div class="ds-note">타임 셔틀</div>
-<section class="year-selector">
-  <div class="year-side original">
-    <span class="year-label">ORIGINAL</span>
-    <span class="year-value mono">1993</span>
+<div class="ds-note">타임 셔틀 콘솔</div>
+<section class="shuttle-console">
+  <div class="sc-head">
+    <span class="sc-title mono">TIME SHUTTLE</span>
+    <span class="sc-gap mono">20년 사이</span>
   </div>
-  <input type="range" class="shuttle" min="0" max="100" value="100">
-  <div class="year-side selected">
-    <span class="year-label">SELECTED</span>
-    <span class="year-value mono">2013</span>
+  <div class="sc-stops">
+    <button type="button" class="sc-stop original">
+      <span class="sc-era mono">ORIGINAL</span>
+      <span class="sc-year mono">1993</span>
+      <span class="sc-artist">서태지와 아이들</span>
+    </button>
+    <span class="sc-rail">
+      <input type="range" class="shuttle" min="0" max="100" value="100">
+    </span>
+    <button type="button" class="sc-stop remake is-active">
+      <span class="sc-era mono">REMAKE</span>
+      <span class="sc-year mono">2013</span>
+      <span class="sc-artist">성시경</span>
+    </button>
   </div>
+  <p class="sc-hint">양쪽 어디로 옮겨도 듣던 위치는 그대로예요</p>
 </section>
-<p class="shuttle-caption mono">⟵ TIME SHUTTLE ⟶</p>
 """
 
 NAV = f"""
@@ -270,9 +280,9 @@ TYPE = """
   <p class="pair-title">너의 의미</p>
   <p class="pair-sub">산울림 → 아이유</p>
 </div>
-<div class="ds-note">모노스페이스 · Space Mono</div>
+<div class="ds-note">라벨·수치 (--font-label: RETRO 모노 / MODERN 본문 서체)</div>
 <div class="ds-stack">
-  <span class="year-value mono">1993</span>
+  <span class="sc-year mono">1993</span>
   <span class="list-caption mono">리메이크 REMAKE</span>
   <span class="time mono">0:29</span>
 </div>
@@ -357,11 +367,28 @@ FEEDBACK = """
     <div class="pair-meta"><p class="pair-title">불러오는 중…</p></div>
   </article>
 </section>
-<div class="ds-note">글리치 오버레이 · 타임슬립 전환 연출</div>
-<div class="ds-overlay-box" style="height:160px">
-  <div class="glitch-overlay">
+<div class="ds-note">타임슬립 · 과거로 (data-dir="back")</div>
+<div class="ds-overlay-box" style="height:170px">
+  <div class="glitch-overlay" data-dir="back">
     <div class="glitch-scanlines"></div>
-    <div class="glitch-text mono">◀◀ REWINDING… 1993</div>
+    <div class="glitch-streaks"></div>
+    <div class="glitch-core">
+      <span class="glitch-dir mono">◀◀ REWINDING</span>
+      <span class="glitch-year mono">1998</span>
+      <span class="glitch-sub mono">서태지와 아이들</span>
+    </div>
+  </div>
+</div>
+<div class="ds-note">타임슬립 · 현재로 (data-dir="fwd")</div>
+<div class="ds-overlay-box" style="height:170px">
+  <div class="glitch-overlay" data-dir="fwd">
+    <div class="glitch-scanlines"></div>
+    <div class="glitch-streaks"></div>
+    <div class="glitch-core">
+      <span class="glitch-dir mono">▶▶ FAST-FORWARD</span>
+      <span class="glitch-year mono">2006</span>
+      <span class="glitch-sub mono">성시경</span>
+    </div>
   </div>
 </div>
 """
@@ -455,10 +482,18 @@ FILL = [
     ('<span class="time mono" id="time-dur">0:00</span>',
      '<span class="time mono">0:29</span>'),
     ('value="0" step="0.1" />', 'value="42" step="0.1" style="--pct:42%" />'),
-    ('<span class="year-value mono" id="year-original">19—</span>',
-     '<span class="year-value mono">1993</span>'),
-    ('<span class="year-value mono" id="year-remake">20—</span>',
-     '<span class="year-value mono">2013</span>'),
+    ('<span class="sc-year mono" id="year-original">19—</span>',
+     '<span class="sc-year mono">1993</span>'),
+    ('<span class="sc-year mono" id="year-remake">20—</span>',
+     '<span class="sc-year mono">2013</span>'),
+    ('<span class="sc-artist" id="artist-original">—</span>',
+     '<span class="sc-artist">서태지와 아이들</span>'),
+    ('<span class="sc-artist" id="artist-remake">—</span>',
+     '<span class="sc-artist">성시경</span>'),
+    ('<span class="sc-gap mono" id="shuttle-gap"></span>',
+     '<span class="sc-gap mono">20년 사이</span>'),
+    ('class="sc-stop remake" id="stop-remake"',
+     'class="sc-stop remake is-active" id="stop-remake"'),
 ]
 
 
