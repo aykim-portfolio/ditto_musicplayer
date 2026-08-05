@@ -704,6 +704,10 @@
     eraFilter = next;
     const era = ERA[next];
     setTheme(era.theme);
+    // 헤더·토글처럼 목록 바깥에 있는 것까지 시대에 맞춰 칠해야 할 때가 있다
+    // ('양쪽' 은 화면 맨 위부터 과거색으로 시작한다). 테마만으로는 구분이 안 된다 —
+    // '양쪽' 과 '리메이크' 가 같은 modern 테마를 쓰기 때문.
+    document.documentElement.dataset.era = next;
     $('#list-caption').textContent = era.caption;
     $$('#view-toggle .vt-btn').forEach((b) => {
       const on = b.dataset.era === next;
@@ -1034,6 +1038,7 @@
     });
   }
 
+  document.documentElement.dataset.era = eraFilter;   // 첫 로드에도 서 있어야 한다
   applyLayout();
 
   /* ---------- Player 열기 ---------- */

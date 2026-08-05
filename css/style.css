@@ -82,6 +82,19 @@
   --radius-field: 8px;    /* 입력·셀렉트 */
   --radius-round: 50%;    /* 원형 버튼 — FAB·아이콘·슬라이더 썸 */
 
+  /* 두 시대의 바탕/글자색. 테마 블록 안에 갇혀 있으면 '양쪽' 화면처럼
+     한 화면에 두 시대를 같이 깔아야 하는 자리에서 꺼내 쓸 수가 없다.
+     그래서 여기 두고 각 테마가 이 값을 가져다 쓴다. */
+  --surface-past: #22332B;
+  --surface-present: #BFE3D0;
+  --ink-past: #D6E8DD;
+  --ink-present: #16211C;
+  /* 같은 색을 투명도와 섞어 써야 하는 자리가 있다(메시 그라디언트의 블롭).
+     hex 로는 알파를 못 붙이므로 성분을 따로 둔다. */
+  --surface-past-rgb: 34 51 43;
+  --surface-present-rgb: 191 227 208;
+  --accent-rgb: 245 121 58;
+
   /* 데스크톱에서 보여줄 기준 기기 — iPhone 14 Pro Max (430 × 932pt) */
   --canvas-w: 430px;
   --canvas-h: 932px;
@@ -110,12 +123,12 @@
   --font-body: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
   --font-label: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
 
-  --color-bg-primary: #BFE3D0;          /* 민트 그린 */
+  --color-bg-primary: var(--surface-present);   /* 민트 그린 */
   --color-bg-deep: #A9D6C0;
   --color-card-bg: #1F2D27;             /* 다크 카드 패널 */
   --color-card-bg-2: #2A3B33;
   --color-nav-bg: #142019;
-  --color-text-primary: #16211C;
+  --color-text-primary: var(--ink-present);
   --color-text-on-card: #F4F1E8;
   --color-text-muted: #5E7268;
   --color-progress-track: rgba(244, 241, 232, 0.18);
@@ -135,12 +148,12 @@
   --font-point: "GanaChocolate", "Galmuri11", "IBM Plex Sans KR", sans-serif;
 
   /* 오렌지는 :root 값 하나로 통일했다 — 여기서 다시 정의하지 않는다. */
-  --color-bg-primary: #22332B;          /* 어두운 초록 바디 (MODERN 민트의 반대 끝) */
+  --color-bg-primary: var(--surface-past);      /* 어두운 초록 바디 (MODERN 민트의 반대 끝) */
   --color-bg-deep: #18251F;
   --color-card-bg: #0F1814;             /* 바디보다 더 어두운 디스플레이 모듈 — 파묻힌 화면 */
   --color-card-bg-2: #17231D;
   --color-nav-bg: #0C1310;
-  --color-text-primary: #D6E8DD;
+  --color-text-primary: var(--ink-past);
   --color-text-on-card: #EAF3EE;
   --color-text-muted: #86A093;
   --color-progress-track: rgba(214, 232, 221, 0.18);
@@ -2102,7 +2115,9 @@ html, body {
 .tw-sub {
   font-size: 11px;
   color: var(--color-text-primary);
-  opacity: .6;
+  /* 다른 목록의 보조 텍스트보다 한 단계 진하다. 이 줄은 메시 그라디언트의
+     가장 애매한 구간(약 40%)에 앉아서 .6 이면 바탕에 묻힌다. */
+  opacity: .75;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tw-year {
@@ -2117,6 +2132,72 @@ html, body {
 /* 두 줄이 같은 곡을 가리키고 있다는 표시 */
 .twin-side.original .tw-card.is-active .tw-art { outline: 2px solid var(--color-text-primary); outline-offset: 2px; }
 .twin-side.remake .tw-card.is-active .tw-art { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+
+/* ===== '양쪽' 화면의 바탕 — 과거에서 현재로 번지는 메시 그라디언트 =====
+   문제는 '양쪽' 이 리메이크와 같은 민트 바탕이라 같은 화면으로 읽힌다는 것이었다.
+   해결은 색을 하나 더 들이는 게 아니라, **이미 쓰던 세 색을 섞는 것**이다 —
+   과거의 짙은 초록 · 현재의 민트 · 앱 공통 오렌지.
+
+   바탕은 목록이 아니라 .phone 에 건다. 헤더·토글·캡션까지 한 덩어리로 칠해야
+   '위에서 시작해 아래로 내려온다'는 흐름이 생긴다. 목록에만 걸면 중간에 낀 띠로 보인다.
+
+   블롭들의 세로 위치는 화면 구조에 맞췄다 —
+   윗쪽(원곡 줄)은 짙게, 가운데(다리 '34년을 건너뜁니다' 근처 50%)에서 번지고,
+   아래(리메이크 줄)는 민트로 도착한다. 경계를 선으로 긋지 않고 색이 옮겨간다. */
+[data-era="both"] .phone {
+  background-color: var(--surface-past);
+  background-image:
+    /* 과거 — 화면 위쪽. 바탕 흐름을 아주 길게 늘였으므로(아래 참조)
+       글자가 앉는 자리는 블롭이 직접 붙들어 준다. */
+    radial-gradient(58% 30% at 16% 4%,  rgb(var(--surface-past-rgb) / .96), transparent 70%),
+    radial-gradient(54% 26% at 90% 14%, rgb(var(--surface-past-rgb) / .9),  transparent 72%),
+    radial-gradient(56% 26% at 34% 24%, rgb(var(--surface-past-rgb) / .88), transparent 72%),
+    radial-gradient(52% 24% at 84% 40%, rgb(var(--surface-past-rgb) / .85), transparent 72%),
+    /* 다리('N년을 건너뜁니다')가 앉는 자리. 여기가 중간색이면 오렌지 글자가 묻힌다 —
+       블렌드 한가운데에 놓이지 않도록 짙은 블롭으로 눌러 준다. */
+    radial-gradient(78% 22% at 44% 52%, rgb(var(--surface-past-rgb) / .82), transparent 74%),
+    /* 건너뛰는 순간 — 다리 안팎으로 따뜻하게 번진다. 오렌지는 옅게만 —
+       진해지면 '누를 수 있는 것'으로 읽혀 액센트의 뜻이 흐려진다. */
+    radial-gradient(50% 18% at 80% 34%, rgb(var(--accent-rgb) / .26), transparent 72%),
+    radial-gradient(42% 15% at 12% 40%, rgb(var(--accent-rgb) / .15), transparent 70%),
+    radial-gradient(38% 14% at 46% 24%, rgb(var(--accent-rgb) / .18), transparent 70%),
+    radial-gradient(44% 16% at 94% 66%, rgb(var(--accent-rgb) / .22), transparent 72%),
+    radial-gradient(40% 15% at 26% 78%, rgb(var(--accent-rgb) / .13), transparent 70%),
+    /* 현재 — 화면 아래쪽. 다리를 덮지 않도록 아래로 물려 놓았다. */
+    radial-gradient(62% 26% at 24% 74%, rgb(var(--surface-present-rgb) / .8),  transparent 72%),
+    radial-gradient(66% 28% at 88% 84%, rgb(var(--surface-present-rgb) / .92), transparent 74%),
+    radial-gradient(95% 40% at 50% 100%, rgb(var(--surface-present-rgb) / 1),  transparent 80%),
+    /* 바탕 흐름 — 경계는 계속 모호하게(32% 구간에 걸쳐 번진다) 두되,
+       그 구간을 다리 아래로 내렸다. 다리가 블렌드 한가운데 앉으면
+       오렌지 글자가 중간색에 묻힌다. */
+    linear-gradient(180deg,
+      var(--surface-past) 0%,
+      var(--surface-past) 56%,
+      var(--surface-present) 88%,
+      var(--surface-present) 100%);
+  /* 레퍼런스처럼 결이 살짝 남아야 색면이 납작해 보이지 않는다 */
+  --grain-opacity: .05;
+  --grain-color: rgba(255, 255, 255, .07);
+
+  /* 화면 위쪽이 어두우므로 헤더·캡션·토글은 밝은 글자로 */
+  --color-text-primary: var(--ink-past);
+}
+
+/* 목록과 두 줄은 바탕을 가리지 않는다 — 메시가 그대로 비쳐야 한다 */
+[data-era="both"] .pair-list.twin,
+[data-era="both"] .twin-side,
+[data-era="both"] .twin-bridge { background: transparent; }
+
+/* 리메이크 줄은 민트 구간에 앉으므로 글자를 어두운 쪽으로 되돌린다 */
+[data-era="both"] .twin-side.remake { --color-text-primary: var(--ink-present); }
+
+/* 어두운 바탕에서 토글이 묻히지 않게 한 단계 띄운다 */
+[data-era="both"] .view-toggle {
+  background: rgb(var(--surface-past-rgb) / .55);
+  border: 1px solid rgba(255, 255, 255, .14);
+  backdrop-filter: blur(8px);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .tn-station, .tw-card, .dl-item { transition: none; }
