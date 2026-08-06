@@ -69,36 +69,57 @@
   );
   $('#btn-back').addEventListener('click', () => showScreen('home'));
 
-  /* ---------- iTunes 메타 매칭 (PoC 쌍 → 런타임 트랙) ---------- */
+  /* ---------- iTunes 메타 매칭 (PoC 쌍 → 런타임 트랙) ----------
+
+     예전에는 홈 화면을 한 번 그릴 때마다 iTunes 로 20번 나갔다(10쌍 × 원곡+리메이크).
+     Apple 의 한도가 IP 당 분당 20회 수준인데 그 할당량을 46ms 에 다 쓴 셈이다.
+     데스크톱은 IP 를 혼자 쓰니 통과했지만, 이동통신망은 CGNAT 이라 수많은 가입자가
+     공인 IP 하나를 공유해서 이미 소진된 상태로 막혔다 — 모바일에서만 깨진 이유다.
+
+     이제 js/catalog.js 의 스냅샷을 먼저 본다. 열 쌍이 다 거기 있으므로
+     첫 화면을 그리는 데 드는 요청은 0 이다. 조회는 표에 없는 쌍에만 쓴다.
+
+     실패는 캐시하지 않는다. 예전에는 빈 값이 담긴 결과도 그대로 캐시돼서,
+     한 번 막히면 그 세션 내내 영영 빈 화면이었다(새로고침 말고는 복구 불가).
+     대신 어느 쪽이 왜 비었는지를 pair 에 남겨, 플레이어가 '미리듣기가 없는 곡'과
+     '불러오지 못한 곡'을 구분해 말할 수 있게 한다. */
+  const catalogSide = (id, side) => (window.DITTO_CATALOG?.[id]?.[side]) || null;
+
   async function resolvePair(pairDef) {
     if (resolvedPairs.has(pairDef.id)) return resolvedPairs.get(pairDef.id);
 
-    const [o, r] = await Promise.all([
-      DittoItunes.matchOne(pairDef.original.query).catch(() => null),
-      DittoItunes.matchOne(pairDef.remake.query).catch(() => null),
-    ]);
+    const fromCatalog = { original: catalogSide(pairDef.id, 'original'),
+                          remake:   catalogSide(pairDef.id, 'remake') };
+
+    // 표에 있는 쪽은 조회하지 않는다. 없는 쪽만 물어본다.
+    const lookup = (side) => (fromCatalog[side]
+      ? Promise.resolve({ hit: fromCatalog[side], failed: false })
+      : DittoItunes.matchOne(pairDef[side].query)
+          .then((hit) => ({ hit, failed: false }))          // hit 이 null 이면 '결과 없음'
+          .catch(() => ({ hit: null, failed: true })));     // 이건 '요청 자체가 실패'
+
+    const [o, r] = await Promise.all([lookup('original'), lookup('remake')]);
+
+    const side = (name, res) => ({
+      artist: pairDef[name].artist,
+      year: pairDef[name].year,
+      album: res.hit?.album || pairDef[name].album || '',
+      artwork: res.hit?.artwork || '',
+      previewUrl: res.hit?.previewUrl || null,
+      ytQuery: pairDef[name].ytQuery,
+      // 미리듣기가 없는 건지, 못 불러온 건지 — 메시지가 갈리는 자리다
+      lookupFailed: res.failed,
+    });
 
     const pair = {
       id: pairDef.id,
       title: pairDef.title,
-      original: {
-        artist: pairDef.original.artist,
-        year: pairDef.original.year,
-        album: o?.album || pairDef.original.album || '',
-        artwork: o?.artwork || '',
-        previewUrl: o?.previewUrl || null,
-        ytQuery: pairDef.original.ytQuery,
-      },
-      remake: {
-        artist: pairDef.remake.artist,
-        year: pairDef.remake.year,
-        album: r?.album || pairDef.remake.album || '',
-        artwork: r?.artwork || '',
-        previewUrl: r?.previewUrl || null,
-        ytQuery: pairDef.remake.ytQuery,
-      },
+      original: side('original', o),
+      remake: side('remake', r),
     };
-    resolvedPairs.set(pairDef.id, pair);
+
+    // 한 쪽이라도 요청이 실패했으면 담아두지 않는다 — 다음에 다시 물어볼 수 있어야 한다
+    if (!o.failed && !r.failed) resolvedPairs.set(pairDef.id, pair);
     return pair;
   }
 

@@ -145,7 +145,10 @@ window.DittoPlayer = (() => {
       if (!meta.videoId) throw new Error('YT_NO_MATCH');
       return meta.videoId;
     }
-    if (!meta.previewUrl) throw new Error('NO_PREVIEW');
+    /* 미리듣기가 없는 것과 못 불러온 것은 다른 사건이다.
+       예전에는 둘 다 NO_PREVIEW 로 묶여서, 요청이 막혔을 때도
+       "이 곡은 미리듣기를 제공하지 않아요" 라고 거짓말을 했다. */
+    if (!meta.previewUrl) throw new Error(meta.lookupFailed ? 'LOOKUP_FAILED' : 'NO_PREVIEW');
     return meta.previewUrl;
   }
 
@@ -282,6 +285,8 @@ window.DittoPlayer = (() => {
       handlers.onError?.('YouTube에서 음원을 찾지 못했어요.');
     } else if (msg === 'NO_PREVIEW') {
       handlers.onError?.('iTunes 미리듣기를 제공하지 않는 곡이에요.');
+    } else if (msg === 'LOOKUP_FAILED') {
+      handlers.onError?.('곡 정보를 불러오지 못했어요. 잠시 후 다시 눌러주세요.');
     } else if (msg === 'LOAD_TIMEOUT') {
       handlers.onError?.('음원을 불러오지 못했어요. 네트워크를 확인하고 다시 시도해 주세요.');
     } else {
