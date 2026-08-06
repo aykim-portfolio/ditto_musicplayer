@@ -28,6 +28,9 @@ window.DITTO_CONFIG = {
     YT_KEY: 'ditto_yt_api_key',
     SOURCE: 'ditto_play_source',   // 'preview' | 'youtube'
     LIBRARY: 'ditto_library',
+    // 클릭휠이 돌아간다는 걸 한 번이라도 보여줬는지. 실제로 돌려본 뒤에는
+    // 다시 안 띄운다 — 반복되는 힌트는 힌트가 아니라 잔소리다.
+    WHEEL_HINT: 'ditto_wheel_hint_seen',
   },
 };
 

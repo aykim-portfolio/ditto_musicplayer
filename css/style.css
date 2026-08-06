@@ -1904,6 +1904,59 @@ html, body {
   user-select: none;
   -webkit-user-select: none;
 }
+/* ---- 널링(요철) — "이건 돌아간다"를 재질로 말한다 ----
+   툴팁으로 "드래그하세요" 라고 쓰면 그 순간 기기가 웹페이지로 돌아간다.
+   대신 실물의 문법을 빌린다 — 볼륨 노브·렌즈 링·조그 다이얼은 예외 없이
+   미끄럼 방지 요철을 갖고 있어서, 요철 자체가 이미 '회전한다'는 신호다.
+   밝은 능선 + 어두운 골 두 겹으로 깎아야 평면 빗금이 아니라 깎인 면으로 읽힌다. */
+.mp3-wheel::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg,
+    rgba(255,255,255,.07) 0deg 2deg,
+    rgba(0,0,0,.18)       2deg 3.6deg,
+    transparent           3.6deg 6deg);
+  /* 가운데 재생 버튼과 바깥 테두리에는 요철이 없다 — 실물도 링에만 있다 */
+  -webkit-mask: radial-gradient(circle, transparent 41%, #000 47%, #000 93%, transparent 98%);
+          mask: radial-gradient(circle, transparent 41%, #000 47%, #000 93%, transparent 98%);
+  pointer-events: none;
+}
+
+/* ---- 첫 진입 1회 스윕 — 움직임을 한 번 보여준다 ----
+   널링은 "돌아갈 것 같다"까지만 말한다. 아무도 화면을 뜯어보지 않으니
+   실제로 도는 걸 한 번 보여주는 쪽이 훨씬 강하다.
+   호가 도는 방향은 목록이 밀려가는 방향과 맞물려야 인과가 읽힌다:
+   - MP3AMP 은 목록이 세로로 움직이므로 접선이 세로인 링 '오른쪽'(90deg)에서 시작.
+   - TUNER 는 다이얼이 가로로 움직이므로 접선이 가로인 링 '위'(0deg)에서 시작.
+   둘 다 시계방향이고, 시계방향이 곧 '다음' 이라 손의 방향까지 같이 알려준다. */
+.mp3-wheel::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  opacity: 0;
+  background: conic-gradient(from var(--hint-from, -22deg),
+    rgba(255,255,255,.26) 0deg, rgba(255,255,255,.02) 34deg, transparent 44deg);
+  -webkit-mask: radial-gradient(circle, transparent 41%, #000 47%, #000 93%, transparent 98%);
+          mask: radial-gradient(circle, transparent 41%, #000 47%, #000 93%, transparent 98%);
+  pointer-events: none;
+}
+.mp3-amp .mp3-wheel { --hint-from: 68deg; }   /* 세로로 미는 목록 → 링 오른쪽 */
+.mp3-wheel.hint-turn::after { animation: wheel-hint 1.6s cubic-bezier(.33,0,.2,1) both; }
+@keyframes wheel-hint {
+  0%   { opacity: 0; transform: rotate(0deg); }
+  14%  { opacity: 1; }
+  72%  { opacity: 1; }
+  100% { opacity: 0; transform: rotate(74deg); }
+}
+/* 움직임을 줄이라고 한 사람에게 억지로 보여주지 않는다.
+   널링은 정지 이미지라 그대로 남는다 — 힌트가 사라지는 게 아니라 조용해질 뿐이다. */
+@media (prefers-reduced-motion: reduce) {
+  .mp3-wheel.hint-turn::after { animation: none; }
+}
+
 /* 돌리는 동안 링이 눌린 느낌 — 실물 휠은 회전해도 눈에 안 보이니 링을 돌리지는 않는다 */
 .mp3-wheel.is-turning {
   cursor: grabbing;

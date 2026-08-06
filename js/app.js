@@ -375,6 +375,42 @@
 
      레일은 #pair-list 자체가 아니라 LCD 안에 중첩된다. TWIN 과 같은 방식으로
      attachRail() 을 중첩 레일에 직접 건다. */
+  /* ----- 클릭휠 힌트 -----
+     널링(요철)은 CSS 가 항상 그린다. 여기서 맡는 건 '한 번 도는 것' 뿐이다.
+
+     회전은 보이지 않는 제스처라, 실물 아이팟을 안 써본 사람에게 이 링은 그냥
+     장식용 원반이다. 그렇다고 볼 때마다 띄우면 기기가 사용자를 못 믿는 것처럼
+     보인다 — 딱 한 번 보여주고 끝낸다. localStorage 가 막힌 환경에서는
+     '이미 봤다'로 친다. 힌트를 못 띄우는 것보다 매번 띄우는 쪽이 더 나쁘다. */
+  const WHEEL_HINT_KEY = DITTO_CONFIG.STORAGE_KEYS.WHEEL_HINT;
+  const wheelHintSeen = () => {
+    try { return localStorage.getItem(WHEEL_HINT_KEY) === '1'; } catch { return true; }
+  };
+  const markWheelHintSeen = () => {
+    try { localStorage.setItem(WHEEL_HINT_KEY, '1'); } catch {}
+  };
+  function primeWheelHint(wheel) {
+    // 움직임을 줄이라고 한 사람에게는 아예 걸지 않는다. '봤다'로 치지도 않아서
+    // 나중에 설정을 바꾸면 그때 한 번 보여준다.
+    if (reduceMotion.matches || wheelHintSeen()) return;
+
+    // 렌더 직후 바로 돌면 화면이 자리잡는 중이라 눈에 안 띈다
+    const timer = setTimeout(() => {
+      wheel.classList.add('hint-turn');
+      markWheelHintSeen();
+    }, 700);
+    wheel.addEventListener('animationend', () => wheel.classList.remove('hint-turn'), { once: true });
+
+    // 힌트가 뜨기 전에 링을 스스로 잡았다면 알려줄 필요가 없는 사람이다.
+    // 좌우·가운데 버튼은 제외한다 — 버튼만 쓰는 사람이야말로 휠을 못 찾은 사람이라
+    // 여기서 취소해버리면 정작 필요한 쪽에서 힌트가 사라진다.
+    wheel.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.mp3-side, .mp3-center')) return;
+      clearTimeout(timer);
+      markWheelHintSeen();
+    });
+  }
+
   function renderTuner(container, defs, era) {
     const shell = document.createElement('div');
     shell.className = 'mp3';
@@ -456,6 +492,7 @@
     const WHEEL_PX_PER_DEG = 2.4;   // 한 바퀴(360°)에 약 5칸
     const WHEEL_SLOP_DEG = 8;       // 이만큼 안 돌면 '누른 것'으로 본다
     const wheel = shell.querySelector('.mp3-wheel');
+    primeWheelHint(wheel);          // 다이얼이 가로로 흐르니 호는 링 '위'에서 시작한다
     let turning = false;
     let lastAngle = 0;
     let turnedDeg = 0;
@@ -600,6 +637,7 @@
        실물 클릭휠도 딸깍거리며 한 항목씩 움직인다. */
     const DEG_PER_ROW = 26;
     const wheel = shell.querySelector('.mp3-wheel');
+    primeWheelHint(wheel);          // 목록이 세로로 밀리니 호는 링 '오른쪽'에서 시작한다
     let turning = false;
     let lastAngle = 0;
     let acc = 0;
