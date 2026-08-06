@@ -476,15 +476,12 @@
       lazyArt(rail, def, era.art);
     });
 
-    // 상태바 시계 자리에는 지금 맞춰진 연도를 띄운다 — 이 기기의 '주파수 표시창'
+    /* 상태바 시계 자리에는 지금 맞춰진 연도를 띄운다 — 이 기기의 '주파수 표시창'.
+       기기 밖 점 인디케이터는 걷어냈으므로 여기서 갱신할 것도 이 한 줄뿐이다. */
     const syncHead = () => {
       const i = railNearest(rail);
       const def = defs[i];
       if (def) clock.textContent = era.years(def);
-      [...dotsEl.children].forEach((dot, n) => {
-        dot.classList.toggle('on', n === i);
-        dot.setAttribute('aria-selected', String(n === i));
-      });
     };
 
     attachRail(rail, { onSettle: syncHead });
@@ -580,7 +577,6 @@
       suppressClick = false;
     }, true);
 
-    buildDots(defs, rail);
     railSync(rail);
     syncHead();
     requestAnimationFrame(() => { railSync(rail); syncHead(); });
@@ -916,7 +912,11 @@
   /* #pair-list 자체가 레일인 레이아웃은 캐러셀 하나뿐이다.
      TWIN 과 TUNER 는 레일을 안쪽에 중첩해 만들고 각자 attachRail() 을 건다. */
   const RAIL_LAYOUTS = ['carousel'];
-  const DOT_LAYOUTS = ['carousel', 'tuner'];
+  /* TUNER 는 점 인디케이터를 쓰지 않는다. 기기 밖 화면 바닥에 점이 뜨면
+     '기기를 보고 있다'는 감각이 깨진다 — 실물 기기 아래에 웹 인디케이터가
+     붙어 있을 리 없다. 게다가 TUNER 는 LCD 상태바의 연도가 이미 같은 일을
+     하고 있어서(지금 어느 곡에 맞춰졌는지) 두 번 말하는 셈이었다. */
+  const DOT_LAYOUTS = ['carousel'];
 
   function applyLayout() {
     // WINAMP 은 목록 하나가 아니라 화면 전체를 덮는 스킨이다 (헤더·여백·하단바까지)
