@@ -24,12 +24,12 @@
 ### 원곡 — RETRO
 
 같은 초록의 어두운 끝. 픽셀 서체(Galmuri), 각진 모서리, 그레인, 하드웨어 디테일.
-목록 레이아웃은 **TUNER(기본) · MP3AMP · WINAMP 셋**이다.
+목록 레이아웃은 **MP3AMP(기본) · TUNER · WINAMP 셋**이다.
 
-| 플레이어 | TUNER — 휴대용 MP3 | MP3AMP — 같은 기기, 화면만 WINAMP |
+| 플레이어 | MP3AMP — 같은 기기, 화면만 WINAMP | TUNER — 휴대용 MP3 |
 |:--:|:--:|:--:|
-| <img src="docs/screenshots/02-player-retro.png" width="190"> | <img src="docs/screenshots/08-home-tuner.png" width="190"> | <img src="docs/screenshots/17-home-mp3amp.png" width="190"> |
-| 사각 페이더 캡 · 카세트 오버레이 | 파묻힌 LCD + 클릭휠. 연도가 곧 주파수 | 휠이 세로 목록을 넘긴다 — 실물 아이팟이 하던 짓 |
+| <img src="docs/screenshots/02-player-retro.png" width="190"> | <img src="docs/screenshots/17-home-mp3amp.png" width="190"> | <img src="docs/screenshots/08-home-tuner.png" width="190"> |
+| 사각 페이더 캡 · 카세트 오버레이 | 휠이 세로 목록을 넘긴다 — 실물 아이팟이 하던 짓 | 파묻힌 LCD + 클릭휠. 연도가 곧 주파수 |
 
 ### WINAMP 스킨
 
@@ -735,3 +735,24 @@ WINAMP 창을 그대로 넣으면 **액자 속 액자**가 된다 — LCD 라는
 확인: 원곡 tweak 순환 `tuner → mp3amp → winamp → tuner`.
 휠 1바퀴로 1→10번 이동, 회전 직후 클릭은 삼켜지고 그다음 클릭은 살아 있음(index 4→5).
 WINAMP 전면 스킨 변수 회귀 없음.
+
+### 기본을 MP3AMP 으로 넘겼다
+
+[10번](#10-tuner-를-휴대용-mp3-로)에서 TUNER 를 원곡의 기본으로 올렸었는데, 그 자리를
+MP3AMP 에 넘긴다. 원곡을 누르면 이제 MP3AMP 이 먼저 열린다.
+
+이유는 위에서 이미 말한 것과 같다. 기기는 둘이 같고 **화면 안에서 하는 일만** 다른데,
+클릭휠이 세로 목록을 넘기는 쪽이 빌려온 형태와 실제 동작이 맞물린다. TUNER 의 가로
+다이얼은 "연도 = 주파수"라는 은유가 한 번 더 설명돼야 읽히고, 첫 화면은 설명을 붙일
+자리가 아니다. 은유가 강한 쪽을 기본으로 두면 목록이 아니라 장치가 먼저 보인다.
+
+TUNER 를 지우는 안은 버렸다. 연표로 읽히는 배치는 여전히 이 앱의 주제를 목록 자체로
+말하는 유일한 것이고, tweak 두 번째 자리에 남아 있다 — 기본에서 밀렸을 뿐이다.
+
+바꾼 건 배열 순서 한 줄이다(`ERA.original.layouts`). 기본값이 `layouts[0]` 하나로
+모여 있어서([9번](#9-tweak--버린-안을-지우지-않고-남겨두기) 이후 구조) 다른 데를 건드릴
+필요가 없었다. 그 자리에 주석을 붙여뒀다 — 순서가 곧 기본값이라는 게 배열만 봐서는
+안 보인다.
+
+확인: 원곡 진입 시 MP3AMP 으로 열림, tweak 순환은 `mp3amp → tuner → winamp → mp3amp`.
+양쪽·리메이크 시대의 기본 레이아웃은 그대로.
