@@ -1992,22 +1992,32 @@ html, body {
 }
 .mp3-wheel.is-turning * { pointer-events: none; }
 .mp3-center { cursor: pointer; }
+/* 각인이 아니라 버튼이다 — pointer-events 를 되돌렸다.
+   글자 대신 셰브런이 들어가면서 '위/아래' 라는 방향이 기호 자체로 읽힌다.
+   VOL + / VOL − 는 읽어야 알았지만 ⌃ ⌄ 는 보면 안다. */
 .mp3-lbl {
   position: absolute;
-  font-size: 10px;
-  letter-spacing: .14em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px; height: 26px;
+  border: none;
+  background: transparent;
   color: var(--color-text-primary);
   opacity: .65;
-  pointer-events: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: 0;
 }
+.mp3-lbl:hover { opacity: 1; }
+.mp3-lbl:active { transform: scale(.88); }
 /* 위아래는 볼륨 한 쌍이다. 원래 위가 MENU 였는데, 휠은 메뉴를 열지 않으므로
-   있지도 않은 기능을 각인해 둔 셈이었다. 위아래를 볼륨 +/− 로 통일하면
-   각인이 서로 짝을 이뤄 축(위=크게, 아래=작게)으로 읽힌다. */
-.mp3-lbl.vol-up { top: 14px; }
-.mp3-lbl.vol-down { bottom: 14px; }
+   있지도 않은 기능을 각인해 둔 셈이었다. 위=크게 / 아래=작게 로 짝을 맞췄고,
+   이제는 각인이 아니라 실제로 볼륨을 움직인다. */
+.mp3-lbl.vol-up { top: 8px; }
+.mp3-lbl.vol-down { bottom: 8px; }
 
-/* 좌우는 실제로 동작한다 — 연도를 한 칸씩 옮긴다.
-   VOL +/− 는 실물의 각인이라 남겨두되 장식이다. */
+/* 좌우도 실제로 동작한다 — 연도를 한 칸씩 옮긴다. */
 .mp3-side {
   position: absolute;
   top: 50%;

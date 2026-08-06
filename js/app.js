@@ -405,9 +405,24 @@
     // 좌우·가운데 버튼은 제외한다 — 버튼만 쓰는 사람이야말로 휠을 못 찾은 사람이라
     // 여기서 취소해버리면 정작 필요한 쪽에서 힌트가 사라진다.
     wheel.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.mp3-side, .mp3-center')) return;
+      if (e.target.closest('.mp3-side, .mp3-center, .mp3-lbl')) return;
       clearTimeout(timer);
       markWheelHintSeen();
+    });
+  }
+
+  /* 링 위아래의 볼륨 버튼. 각인이던 걸 실제로 동작하게 바꿨다 —
+     [19번](MAKING-OF)에서 라벨만 정정하고 기능은 안 붙였던 자리다.
+     휠은 동적으로 그려지므로 아이콘도 여기서 심는다(전역 mountIcons 는 로드 때 한 번뿐). */
+  function wireWheelVolume(shell) {
+    mountIcons(shell);
+    shell.querySelectorAll('.mp3-lbl').forEach((btn) => {
+      const dir = btn.classList.contains('vol-up') ? 1 : -1;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();          // 휠의 클릭 처리로 새어나가지 않게
+        const v = DittoPlayer.nudgeVolume(dir);
+        toast(`볼륨 ${Math.round(v * 100)}%`, 900);
+      });
     });
   }
 
@@ -429,8 +444,10 @@
         </div>
       </div>
       <div class="mp3-wheel">
-        <span class="mp3-lbl vol-up mono">VOL +</span>
-        <span class="mp3-lbl vol-down mono">VOL −</span>
+        <button type="button" class="mp3-lbl vol-up" aria-label="볼륨 높이기"
+                data-icon="chevron-up" data-icon-size="16"></button>
+        <button type="button" class="mp3-lbl vol-down" aria-label="볼륨 낮추기"
+                data-icon="chevron-down" data-icon-size="16"></button>
         <button type="button" class="mp3-side prev" aria-label="이전 연도">◀◀</button>
         <button type="button" class="mp3-side next" aria-label="다음 연도">▶▶</button>
         <button type="button" class="mp3-center" aria-label="재생"></button>
@@ -493,6 +510,7 @@
     const WHEEL_SLOP_DEG = 8;       // 이만큼 안 돌면 '누른 것'으로 본다
     const wheel = shell.querySelector('.mp3-wheel');
     primeWheelHint(wheel);          // 다이얼이 가로로 흐르니 호는 링 '위'에서 시작한다
+    wireWheelVolume(shell);
     let turning = false;
     let lastAngle = 0;
     let turnedDeg = 0;
@@ -505,7 +523,8 @@
 
     wheel.addEventListener('pointerdown', (e) => {
       if (e.button !== 0) return;
-      if (e.target.closest('.mp3-center')) return;   // 가운데는 재생 버튼이다
+      // 가운데는 재생, 위아래는 볼륨 — 버튼 위에서 시작한 누름은 회전이 아니다
+      if (e.target.closest('.mp3-center, .mp3-lbl')) return;
       turning = true;
       turnedDeg = 0;
       lastAngle = angleAt(e);
@@ -552,6 +571,10 @@
 
     wheel.addEventListener('click', (e) => {
       if (!suppressClick) return;
+      /* 이 억제는 '링을 돌린 것' 이 '링을 누른 것' 으로 읽히지 않게 하는 장치다.
+         캡처 단계라 링 위에 얹힌 진짜 버튼보다 먼저 도는데, 거기까지 삼키면
+         돌린 직후 볼륨을 누르는 흔한 동작이 한 번 씹힌다. 버튼은 통과시킨다. */
+      if (e.target.closest('.mp3-lbl, .mp3-side, .mp3-center')) return;
       e.stopPropagation();
       e.preventDefault();
       suppressClick = false;
@@ -600,8 +623,10 @@
         </div>
       </div>
       <div class="mp3-wheel">
-        <span class="mp3-lbl vol-up mono">VOL +</span>
-        <span class="mp3-lbl vol-down mono">VOL −</span>
+        <button type="button" class="mp3-lbl vol-up" aria-label="볼륨 높이기"
+                data-icon="chevron-up" data-icon-size="16"></button>
+        <button type="button" class="mp3-lbl vol-down" aria-label="볼륨 낮추기"
+                data-icon="chevron-down" data-icon-size="16"></button>
         <button type="button" class="mp3-side prev" aria-label="이전 곡">◀◀</button>
         <button type="button" class="mp3-side next" aria-label="다음 곡">▶▶</button>
         <button type="button" class="mp3-center" aria-label="재생"></button>
@@ -638,6 +663,7 @@
     const DEG_PER_ROW = 26;
     const wheel = shell.querySelector('.mp3-wheel');
     primeWheelHint(wheel);          // 목록이 세로로 밀리니 호는 링 '오른쪽'에서 시작한다
+    wireWheelVolume(shell);
     let turning = false;
     let lastAngle = 0;
     let acc = 0;
@@ -651,7 +677,8 @@
     };
 
     wheel.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || e.target.closest('.mp3-center')) return;
+      // 가운데는 재생, 위아래는 볼륨 — 버튼 위에서 시작한 누름은 회전이 아니다
+      if (e.button !== 0 || e.target.closest('.mp3-center, .mp3-lbl')) return;
       turning = true; acc = 0; turnedDeg = 0;
       lastAngle = angleAt(e);
       wheel.classList.add('is-turning');
@@ -685,6 +712,10 @@
     wheel.addEventListener('pointercancel', endTurn);
     wheel.addEventListener('click', (e) => {
       if (!suppressClick) return;
+      /* 이 억제는 '링을 돌린 것' 이 '링을 누른 것' 으로 읽히지 않게 하는 장치다.
+         캡처 단계라 링 위에 얹힌 진짜 버튼보다 먼저 도는데, 거기까지 삼키면
+         돌린 직후 볼륨을 누르는 흔한 동작이 한 번 씹힌다. 버튼은 통과시킨다. */
+      if (e.target.closest('.mp3-lbl, .mp3-side, .mp3-center')) return;
       e.stopPropagation();
       e.preventDefault();
       suppressClick = false;

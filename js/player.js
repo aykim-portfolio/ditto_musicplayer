@@ -71,6 +71,15 @@ window.DittoPlayer = (() => {
     youtube: null, // 최초 사용 시 생성
   };
 
+  /* ---------- 마스터 볼륨 ----------
+     엔진의 setVolume 은 크로스페이드가 쓰는 자리이기도 하다. 거기서 넘기는 값은
+     '음량' 이 아니라 '페이드 진행률(0~1)' 이라서, 사용자 볼륨을 따로 두지 않고
+     그 값을 직접 건드리면 셔틀 한 번에 볼륨이 1 로 되돌아간다.
+     그래서 진행률 × 마스터 로 나눠 곱한다 — 컨트롤러 안의 모든 setVolume 은
+     반드시 applyVol 을 거쳐야 한다. */
+  let masterVol = 1;
+  const applyVol = (engine, ratio = 1) => engine.setVolume(ratio * masterVol);
+
   const handlers = {
     onModeChange: null,   // (mode) — 테마/UI 전환
     onTick: null,         // (cur, dur)
@@ -78,6 +87,7 @@ window.DittoPlayer = (() => {
     onTrackLoaded: null,  // (pair, mode)
     onError: null,        // (message)
     onEnded: null,
+    onVolumeChange: null, // (v01)
   };
 
   function on(evts) { Object.assign(handlers, evts); }
@@ -186,7 +196,7 @@ window.DittoPlayer = (() => {
     try {
       const seek = seekSec != null ? seekSec : (currentEngine().getCurrentTime() || 0);
       const engine = await prepareEngine(state.mode, seek);
-      engine.setVolume(1);
+      applyVol(engine, 1);
       // 자동재생이 막히면 false 가 온다 — 그때는 멈춘 상태로 정직하게 표시한다
       const started = await engine.play();
       state.playing = started !== false;
@@ -230,7 +240,7 @@ window.DittoPlayer = (() => {
       const toEngine = await prepareEngine(toMode, t);
 
       // ③ 크로스페이드
-      toEngine.setVolume(0);
+      applyVol(toEngine, 0);
       if (wasPlaying) toEngine.play();
       await crossfade(fromEngine, toEngine, DITTO_CONFIG.CROSSFADE_MS, wasPlaying);
       fromEngine.pause(); // ④ 기존 곡 일시정지
@@ -252,9 +262,9 @@ window.DittoPlayer = (() => {
       const start = performance.now();
       const step = (now) => {
         const p = Math.min(1, (now - start) / ms);
-        outE.setVolume(1 - p);
-        if (fadeIn) inE.setVolume(p);
-        else inE.setVolume(1);
+        applyVol(outE, 1 - p);
+        if (fadeIn) applyVol(inE, p);
+        else applyVol(inE, 1);
         if (p < 1) requestAnimationFrame(step);
         else resolve();
       };
@@ -298,7 +308,7 @@ window.DittoPlayer = (() => {
     if (state.pair) {
       try {
         const engine = await prepareEngine(state.mode, t);
-        engine.setVolume(1);
+        applyVol(engine, 1);
         if (wasPlaying) { engine.play(); state.playing = true; handlers.onStateChange?.(true); }
       } catch (err) {
         handleSourceError(err);
@@ -306,8 +316,21 @@ window.DittoPlayer = (() => {
     }
   }
 
+  /* 볼륨은 한 번에 한 칸씩 움직인다. 셔틀 중에는 크로스페이드가 매 프레임
+     applyVol 로 덮어쓰므로 굳이 지금 엔진에 밀어 넣지 않아도 다음 프레임에 반영된다. */
+  const VOL_STEP = 0.1;
+  function setMasterVolume(v01) {
+    masterVol = Math.max(0, Math.min(1, v01));
+    if (state.pair && !state.shuttling) applyVol(currentEngine(), 1);
+    handlers.onVolumeChange?.(masterVol);
+    return masterVol;
+  }
+  const nudgeVolume = (dir) => setMasterVolume(masterVol + dir * VOL_STEP);
+
   return {
     on, loadPair, play, pause, toggle, seekRatio, shuttle, stop, setSource,
+    setMasterVolume, nudgeVolume,
+    get volume() { return masterVol; },
     get state() { return state; },
   };
 })();
