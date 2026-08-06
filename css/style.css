@@ -685,6 +685,9 @@ html, body {
 /* 부모의 opacity 는 자식이 되돌릴 수 없다(그룹으로 합성된다).
    그래서 강조는 투명도가 아니라 색으로 준다. */
 .search-hint strong { font-weight: 700; color: var(--color-accent); }
+/* 라이브러리 안내문만 키운다. 검색 화면의 같은 클래스는 결과 목록에 딸린
+   각주라 작은 게 맞고, 이쪽은 화면에 거의 유일한 글이라 각주 크기면 방치돼 보인다. */
+.lib-hint { font-size: 14px; opacity: .72; }
 .search-results { display: flex; flex-direction: column; gap: 10px; }
 .result-row {
   display: flex;
@@ -1017,6 +1020,13 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* 저장된 상태 — 아이콘(+ → ✓)만으로도 읽히지만, 색까지 빠져야 '누르면 담긴다'는
+   유혹이 사라진다. 채워진 주황을 비우고 테두리만 남겨 '이미 담김' 으로 읽게 한다. */
+.fab.is-saved {
+  background: transparent;
+  color: var(--color-accent);
+  box-shadow: inset 0 0 0 2px var(--color-accent), 0 6px 16px rgba(0,0,0,.28);
 }
 
 /* ===== Bottom Nav ===== */
@@ -2196,7 +2206,10 @@ html, body {
      여백을 12px 로 늘리고 같은 만큼 margin 으로 당겨 위치는 그대로 둔다.
      아트 위치를 지키려면 레일 상자가 라벨 아래쪽 5px 에 겹칠 수밖에 없는데,
      겹치는 건 배경 없는 여백이고 라벨은 누를 것이 없어서 그대로 뒀다. */
-  padding: 12px calc((var(--canvas-w) - 150px) / 2) 6px;
+  /* 가운데 정렬 여백은 카드 폭(.tw-card 의 flex-basis)의 절반이다.
+     카드를 키우면 이 숫자도 같이 움직여야 한다 — 안 그러면 활성 카드가
+     레일 중앙에서 밀려난다. */
+  padding: 12px calc((var(--canvas-w) - 196px) / 2) 6px;
   margin-top: -10px;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
@@ -2209,7 +2222,7 @@ html, body {
 .twin-rail.dragging * { pointer-events: none; }
 .tw-card {
   position: relative;
-  flex: 0 0 150px;
+  flex: 0 0 196px;
   align-self: flex-start;
   scroll-snap-align: center;
   cursor: pointer;
@@ -2219,7 +2232,7 @@ html, body {
 }
 .tw-card.is-active { opacity: 1; transform: scale(1); }
 .tw-art {
-  width: 150px; height: 150px;
+  width: 196px; height: 196px;
   flex: 0 0 auto;
   border-radius: var(--radius-art);
   background: var(--color-card-bg-2);

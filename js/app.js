@@ -1180,6 +1180,7 @@
     if (show) showScreen('player');
     currentPairIndex = DITTO_PAIRS.findIndex((p) => p.id === def.id);
     if (activeScreen === 'player') $('#fab').classList.toggle('hidden', currentPairIndex < 0);
+    syncFab();
     $('#song-title').textContent = `${def.title}`;
     $('#song-subtitle').textContent = '매칭 중…';
     try {
@@ -1422,10 +1423,21 @@
   $('#search-btn').addEventListener('click', doSearch);
   $('#search-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
 
-  /* ---------- Library (localStorage) ---------- */
+  /* ---------- Library (localStorage) ----------
+     빈 라이브러리로 시작하면 이 화면이 무슨 화면인지 볼 방법이 없다.
+     처음 열었을 때만 세 곡을 넣어둔다 — 저장된 목록이 어떤 모습인지,
+     해제는 어떻게 하는지가 설명 없이 보이는 게 안내문보다 낫다.
+
+     '한 번도 저장한 적 없음'(키 자체가 없음)과 '전부 지웠음'(빈 배열)은
+     다른 상태다. 후자에 다시 채워 넣으면 사용자가 지운 걸 앱이 되돌리는 셈이라
+     키가 아예 없을 때만 심는다. */
+  const LIBRARY_SEED = ['pair-01', 'pair-02', 'pair-03'];
   function getLibrary() {
-    try { return JSON.parse(localStorage.getItem(DITTO_CONFIG.STORAGE_KEYS.LIBRARY)) || []; }
-    catch { return []; }
+    try {
+      const raw = localStorage.getItem(DITTO_CONFIG.STORAGE_KEYS.LIBRARY);
+      if (raw === null) { setLibrary(LIBRARY_SEED); return [...LIBRARY_SEED]; }
+      return JSON.parse(raw) || [];
+    } catch { return []; }
   }
   function setLibrary(ids) {
     localStorage.setItem(DITTO_CONFIG.STORAGE_KEYS.LIBRARY, JSON.stringify(ids));
@@ -1435,7 +1447,7 @@
     const defs = DITTO_PAIRS.filter((p) => ids.includes(p.id));
     const box = $('#library-list');
     if (!defs.length) {
-      box.innerHTML = '<p class="search-hint">저장된 셔틀이 없어요.</p>';
+      box.innerHTML = '<p class="search-hint lib-hint">저장된 셔틀이 없어요.</p>';
       return;
     }
     box.classList.remove('grid', 'carousel');
@@ -1447,14 +1459,37 @@
     renderLibrary();
     toast('라이브러리에서 삭제했어요.');
   }
+  /* FAB 는 토글이다 — 저장이 되면 해제도 같은 자리에서 돼야 한다.
+     예전에는 이미 저장된 곡을 누르면 '이미 있어요' 만 뜨고 끝이라,
+     해제하려면 라이브러리 화면까지 가야 했다. 누른 자리에서 되돌릴 수 없으면
+     그건 버튼이 아니라 경고문이다. */
+  /* 셔틀 id 는 currentPairIndex 로 바로 알 수 있다. DittoPlayer.state.pair 는
+     트랙 매칭이 끝나야 채워지므로, 그걸 기다리면 화면이 열린 뒤 한 박자 늦게
+     버튼 모양이 바뀐다. */
+  const currentPairId = () => (currentPairIndex >= 0 ? DITTO_PAIRS[currentPairIndex].id : null);
+  function syncFab() {
+    const fab = $('#fab');
+    const id = currentPairId();
+    const saved = !!id && getLibrary().includes(id);
+    fab.classList.toggle('is-saved', saved);
+    fab.setAttribute('aria-pressed', String(saved));
+    fab.setAttribute('aria-label', saved ? '라이브러리에서 빼기' : '라이브러리에 추가');
+    fab.innerHTML = `<span data-icon="${saved ? 'check' : 'plus'}" data-icon-size="22"></span>`;
+    mountIcons(fab);
+  }
   $('#fab').addEventListener('click', () => {
-    const pair = DittoPlayer.state.pair;
-    if (!pair || currentPairIndex < 0) return;
+    const id = currentPairId();
+    if (!id) return;
     const ids = getLibrary();
-    if (ids.includes(pair.id)) return toast('이미 라이브러리에 있어요.');
-    ids.push(pair.id);
-    setLibrary(ids);
-    toast('라이브러리에 저장했어요 ♡');
+    if (ids.includes(id)) {
+      setLibrary(ids.filter((x) => x !== id));
+      toast('라이브러리에서 뺐어요.');
+    } else {
+      setLibrary([...ids, id]);
+      toast('라이브러리에 저장했어요 ♡');
+    }
+    syncFab();
+    if (activeScreen === 'library') renderLibrary();
   });
 
   /* ---------- Settings ---------- */
