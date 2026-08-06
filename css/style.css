@@ -1854,7 +1854,7 @@ html, body {
   border: 1px solid rgba(0,0,0,.5);
 }
 .tn-title {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--color-text-on-card);
   font-family: var(--font-display);
@@ -1862,10 +1862,12 @@ html, body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tn-artist {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--color-text-on-card);
-  opacity: .55;
+  /* 글자가 커진 만큼 옅기를 조금 올렸다 — .55 는 10px 기준으로 잡은 값이라
+     그대로 두면 곡명과의 대비가 벌어져 두 줄이 따로 논다. */
+  opacity: .62;
   max-width: 100%;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -2034,7 +2036,10 @@ html, body {
 .mp3-amp .ma-list {
   background: none;          /* LCD 바탕을 그대로 쓴다 */
   border: 0;
-  max-height: 212px;
+  /* TUNER 의 스테이션 높이에 맞춘 값이다. 두 레이아웃은 같은 기기라
+     tweak 으로 넘길 때 몸체가 들썩이면 안 된다 — TUNER 쪽 글자나 아트를
+     건드리면 이 숫자도 같이 맞춰야 한다. 열 곡이 딱 들어가는 높이이기도 하다. */
+  max-height: 226px;
   padding: 3px 0 2px;
   scrollbar-width: none;
 }
