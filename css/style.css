@@ -1408,7 +1408,7 @@ html, body {
 /* WINAMP 창의 색은 전면 스킨(.pair-list.winamp)뿐 아니라 TUNER 아래에 붙는
    플레이리스트 창에서도 쓴다. 그래서 변수는 레이아웃이 아니라 이 공용 자리에 둔다. */
 .pair-list.winamp,
-.mp3-playlist {
+.mp3-amp {
   --wa-chrome: #434A47;       /* 기구물 본체 — 거의 무채색 */
   --wa-chrome-hi: #5B635F;    /* 베벨 윗면 */
   --wa-chrome-lo: #262B29;    /* 베벨 아랫면 */
@@ -1959,8 +1959,39 @@ html, body {
 /* 기기 아래에 붙는 WINAMP 플레이리스트 창.
    전면 스킨과 달리 '창 하나'만 빌려오므로 바깥 배경은 RETRO 그대로다.
    기기(약 469px)와 같이 세로에 들어가야 해서 목록 높이를 줄여 스크롤시킨다. */
-.mp3-playlist { margin-top: 10px; }
-.mp3-playlist .wa-pl-body { max-height: 148px; }
+/* ---- MP3AMP: 기기는 TUNER 와 같고 LCD 안이 WINAMP 목록 ----
+   창을 기기 밖에 따로 두지 않고 화면 안으로 집어넣는다. 그래서 창틀(베벨·그림자)은
+   빼고 LCD 가 그 역할을 한다 — 화면 안에 또 창이 뜨면 액자 속 액자가 된다. */
+.mp3-amp .mp3-screen { gap: 0; padding-bottom: 0; }
+
+.mp3-amp .ma-title {
+  height: 13px;
+  margin: 4px -2px 0;
+  background: none;
+  border-bottom: 1px solid rgb(var(--surface-past-rgb) / .6);
+}
+.mp3-amp .ma-title .wa-title-line {
+  background: repeating-linear-gradient(180deg,
+    color-mix(in srgb, var(--wa-phosphor) 45%, transparent) 0 1px, transparent 1px 2px);
+}
+.mp3-amp .ma-title .wa-title-text { color: var(--wa-phosphor); opacity: .8; }
+
+.mp3-amp .ma-list {
+  background: none;          /* LCD 바탕을 그대로 쓴다 */
+  border: 0;
+  max-height: 212px;
+  padding: 3px 0 2px;
+  scrollbar-width: none;
+}
+.mp3-amp .ma-list::-webkit-scrollbar { display: none; }
+.mp3-amp .wa-row { font-size: 10px; line-height: 1.7; }
+
+.mp3-amp .ma-foot {
+  margin: 0 -2px;
+  padding: 4px 2px 2px;
+  background: none;
+  border-top: 1px solid rgb(var(--surface-past-rgb) / .6);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .mp3-rail { scroll-behavior: auto; }

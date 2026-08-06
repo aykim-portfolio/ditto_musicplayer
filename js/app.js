@@ -114,7 +114,7 @@
       // 하드웨어 레퍼런스 2종 — tweak 버튼으로 돌려본다.
       // RACK(EP-133 패드)·DIAL(부채꼴 휠)은 노출에서 뺐다. 렌더러와 CSS 는 남아 있으니
       // 여기 배열에 이름만 되돌리면 다시 살아난다.
-      layouts: ['tuner', 'winamp'],
+      layouts: ['tuner', 'mp3amp', 'winamp'],
       years: (d) => `${d.original.year}`,
       sub:   (d) => d.original.artist,
       art:   (p) => p.original.artwork || p.remake.artwork,
@@ -423,42 +423,6 @@
     });
 
     // 상태바 시계 자리에는 지금 맞춰진 연도를 띄운다 — 이 기기의 '주파수 표시창'
-    /* 기기 아래에 WINAMP 플레이리스트 창을 붙인다.
-       다이얼은 한 번에 한 곡만 보여주니, 전체 목록을 훑는 자리가 따로 필요하다.
-       전면 스킨(WINAMP 레이아웃)과 달리 '창 하나'만 빌려온다 — 나머지 화면은 그대로 RETRO.
-       푸터의 연도 범위는 장식이 아니라 이 목록이 걸친 실제 시간 폭이다. */
-    const years = defs.map((d) => Number(era.years(d))).filter(Boolean);
-    const pl = document.createElement('section');
-    pl.className = 'wa-win mp3-playlist';
-    pl.innerHTML = `
-      <div class="wa-title">
-        <span class="wa-title-line"></span>
-        <span class="wa-title-text">WINAMP PLAYLIST</span>
-        <span class="wa-title-line"></span>
-        <span class="wa-title-btns">─ □ ✕</span>
-      </div>
-      <div class="wa-pl-body">
-        ${defs.map((def, i) => `
-          <div class="wa-row" data-i="${i}">
-            <span class="wa-idx">${i + 1}.</span>
-            <span class="wa-name">${era.sub(def)} - ${def.title}</span>
-            <span class="wa-dur">'${String(era.years(def)).slice(2)}</span>
-          </div>`).join('')}
-      </div>
-      <div class="wa-pl-foot">
-        <span class="wa-pf">ADD</span><span class="wa-pf">REM</span>
-        <span class="wa-pf">SEL</span><span class="wa-pf">MISC</span>
-        <span class="wa-pl-total">${Math.min(...years)}-${Math.max(...years)}</span>
-        <span class="wa-pf wa-listopts">LIST<br>OPTS</span>
-      </div>
-    `;
-    container.appendChild(pl);
-
-    const rows = [...pl.querySelectorAll('.wa-row')];
-    rows.forEach((row) => {
-      row.addEventListener('click', () => railScrollTo(rail, Number(row.dataset.i)));
-    });
-
     const syncHead = () => {
       const i = railNearest(rail);
       const def = defs[i];
@@ -467,8 +431,6 @@
         dot.classList.toggle('on', n === i);
         dot.setAttribute('aria-selected', String(n === i));
       });
-      // 다이얼이 가리키는 곡을 목록에서도 반전시킨다 — 둘은 같은 상태를 본다
-      rows.forEach((row, n) => row.classList.toggle('on', n === i));
     };
 
     attachRail(rail, { onSettle: syncHead });
@@ -561,6 +523,135 @@
     railSync(rail);
     syncHead();
     requestAnimationFrame(() => { railSync(rail); syncHead(); });
+  }
+
+  /* ----- MP3AMP: MP3 몸체 + 화면 안은 WINAMP -----
+     TUNER 와 기기는 같고 화면만 갈아끼운다. 다이얼 대신 WINAMP 플레이리스트가
+     LCD 안에 들어앉는다.
+
+     휠이 세로 목록을 넘기는 건 실물 아이팟이 하던 짓 그대로다 —
+     TUNER 의 가로 다이얼보다 이쪽이 기기 동작에 더 가깝다. */
+  function renderMp3Amp(container, defs, era) {
+    const years = defs.map((d) => Number(era.years(d))).filter(Boolean);
+    const shell = document.createElement('div');
+    shell.className = 'mp3 mp3-amp';
+    shell.innerHTML = `
+      <div class="mp3-screen">
+        <div class="mp3-status">
+          <span class="mp3-clock mono">${era.years(defs[0])}</span>
+          <span class="mp3-status-mid mono">WINAMP</span>
+          <span class="mp3-batt"></span>
+        </div>
+        <div class="wa-title ma-title">
+          <span class="wa-title-line"></span>
+          <span class="wa-title-text">PLAYLIST</span>
+          <span class="wa-title-line"></span>
+        </div>
+        <div class="wa-pl-body ma-list">
+          ${defs.map((def, i) => `
+            <div class="wa-row" data-i="${i}">
+              <span class="wa-idx">${i + 1}.</span>
+              <span class="wa-name">${era.sub(def)} - ${def.title}</span>
+              <span class="wa-dur">'${String(era.years(def)).slice(2)}</span>
+            </div>`).join('')}
+        </div>
+        <div class="wa-pl-foot ma-foot">
+          <span class="wa-pf">ADD</span><span class="wa-pf">REM</span>
+          <span class="wa-pl-total">${Math.min(...years)}-${Math.max(...years)}</span>
+          <span class="wa-pf wa-listopts">LIST<br>OPTS</span>
+        </div>
+      </div>
+      <div class="mp3-wheel">
+        <span class="mp3-lbl menu mono">MENU</span>
+        <span class="mp3-lbl vol mono">VOL</span>
+        <button type="button" class="mp3-side prev" aria-label="이전 곡">◀◀</button>
+        <button type="button" class="mp3-side next" aria-label="다음 곡">▶▶</button>
+        <button type="button" class="mp3-center" aria-label="재생"></button>
+      </div>
+    `;
+    container.appendChild(shell);
+
+    const list = shell.querySelector('.ma-list');
+    const clock = shell.querySelector('.mp3-clock');
+    const rows = [...shell.querySelectorAll('.wa-row')];
+    let sel = 0;
+
+    const select = (i, { scroll = true } = {}) => {
+      sel = Math.max(0, Math.min(defs.length - 1, i));
+      rows.forEach((row, n) => row.classList.toggle('on', n === sel));
+      clock.textContent = era.years(defs[sel]);
+      if (scroll) rows[sel].scrollIntoView({ block: 'nearest', behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+    };
+
+    rows.forEach((row) => {
+      row.addEventListener('click', () => {
+        const i = Number(row.dataset.i);
+        if (i !== sel) { select(i); return; }   // 먼저 고르고, 다시 눌러야 재생
+        openPair(defs[i]);
+      });
+    });
+
+    shell.querySelector('.mp3-side.prev').addEventListener('click', () => select(sel - 1));
+    shell.querySelector('.mp3-side.next').addEventListener('click', () => select(sel + 1));
+    shell.querySelector('.mp3-center').addEventListener('click', () => openPair(defs[sel]));
+
+    /* 휠 회전 — 목록이라 연속 스크롤이 아니라 한 칸씩 끊어 넘긴다.
+       실물 클릭휠도 딸깍거리며 한 항목씩 움직인다. */
+    const DEG_PER_ROW = 26;
+    const wheel = shell.querySelector('.mp3-wheel');
+    let turning = false;
+    let lastAngle = 0;
+    let acc = 0;
+    let turnedDeg = 0;
+    let suppressClick = false;
+
+    const angleAt = (e) => {
+      const r = wheel.getBoundingClientRect();
+      return Math.atan2(e.clientY - (r.top + r.height / 2),
+                        e.clientX - (r.left + r.width / 2)) * 180 / Math.PI;
+    };
+
+    wheel.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || e.target.closest('.mp3-center')) return;
+      turning = true; acc = 0; turnedDeg = 0;
+      lastAngle = angleAt(e);
+      wheel.classList.add('is-turning');
+      try { wheel.setPointerCapture(e.pointerId); } catch {}
+    });
+
+    wheel.addEventListener('pointermove', (e) => {
+      if (!turning) return;
+      let d = angleAt(e) - lastAngle;
+      if (d > 180) d -= 360;
+      if (d < -180) d += 360;
+      lastAngle += d;
+      turnedDeg += Math.abs(d);
+      acc += d;
+      while (Math.abs(acc) >= DEG_PER_ROW) {
+        const dir = acc > 0 ? 1 : -1;
+        acc -= dir * DEG_PER_ROW;
+        select(sel + dir);
+      }
+    });
+
+    const endTurn = () => {
+      if (!turning) return;
+      turning = false;
+      wheel.classList.remove('is-turning');
+      // 돌린 직후 따라오는 클릭 한 번만 삼킨다 (플래그를 남기면 다음 클릭이 죽는다)
+      if (turnedDeg > 8) { suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); }
+      turnedDeg = 0;
+    };
+    wheel.addEventListener('pointerup', endTurn);
+    wheel.addEventListener('pointercancel', endTurn);
+    wheel.addEventListener('click', (e) => {
+      if (!suppressClick) return;
+      e.stopPropagation();
+      e.preventDefault();
+      suppressClick = false;
+    }, true);
+
+    select(0, { scroll: false });
   }
 
   /* ----- DIAL: 부채꼴 회전 휠 -----
@@ -694,6 +785,7 @@
     if (layout === 'rack') return renderRack(container, defs, era);
     if (layout === 'winamp') return renderWinamp(container, defs, era);
     if (layout === 'tuner') return renderTuner(container, defs, era);
+    if (layout === 'mp3amp') return renderMp3Amp(container, defs, era);
     if (layout === 'dial') return renderDial(container, defs, era);
     if (layout === 'twin') return renderTwin(container, defs);
     return renderCards(container, defs, era, layout, removable);
@@ -735,12 +827,12 @@
   const LAYOUT_LABEL = {
     carousel: 'CAROUSEL', grid: 'GRID', list: 'LIST',
     rack: 'RACK', winamp: 'WINAMP', tuner: 'TUNER', dial: 'DIAL',
-    twin: 'TWIN',
+    twin: 'TWIN', mp3amp: 'MP3AMP',
   };
   const LAYOUT_ICON = {
     carousel: 'gallery-horizontal-end', grid: 'layout-grid', list: 'layout-list',
     rack: 'grid-3x3', winamp: 'list-music', tuner: 'radio', dial: 'disc-3',
-    twin: 'rows-2',
+    twin: 'rows-2', mp3amp: 'list-music',
   };
   const ALL_LAYOUTS = Object.keys(LAYOUT_LABEL);
   /* 각 시대의 기본 레이아웃은 ERA[…].layouts[0] 하나로 정한다.
