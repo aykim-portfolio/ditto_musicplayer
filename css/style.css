@@ -2104,7 +2104,14 @@ html, body {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   margin-inline: calc(-1 * var(--pad-screen));
-  padding: 2px calc((var(--canvas-w) - 150px) / 2) 6px;
+  /* overflow-x:auto 는 overflow-y 를 visible 로 둘 수 없다 — 자동으로 auto 가 되면서
+     세로도 같이 잘린다. 활성 카드의 링(outline 2px + offset 2px)이 아트 위로 4px
+     나가는데 위 여백이 2px 뿐이라 앨범 아트 윗부분이 잘려 보였다.
+     여백을 12px 로 늘리고 같은 만큼 margin 으로 당겨 위치는 그대로 둔다.
+     아트 위치를 지키려면 레일 상자가 라벨 아래쪽 5px 에 겹칠 수밖에 없는데,
+     겹치는 건 배경 없는 여백이고 라벨은 누를 것이 없어서 그대로 뒀다. */
+  padding: 12px calc((var(--canvas-w) - 150px) / 2) 6px;
+  margin-top: -10px;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
   cursor: grab;
