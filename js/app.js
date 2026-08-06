@@ -429,8 +429,8 @@
         </div>
       </div>
       <div class="mp3-wheel">
-        <span class="mp3-lbl menu mono">MENU</span>
-        <span class="mp3-lbl vol mono">VOL</span>
+        <span class="mp3-lbl vol-up mono">VOL +</span>
+        <span class="mp3-lbl vol-down mono">VOL −</span>
         <button type="button" class="mp3-side prev" aria-label="이전 연도">◀◀</button>
         <button type="button" class="mp3-side next" aria-label="다음 연도">▶▶</button>
         <button type="button" class="mp3-center" aria-label="재생"></button>
@@ -600,8 +600,8 @@
         </div>
       </div>
       <div class="mp3-wheel">
-        <span class="mp3-lbl menu mono">MENU</span>
-        <span class="mp3-lbl vol mono">VOL</span>
+        <span class="mp3-lbl vol-up mono">VOL +</span>
+        <span class="mp3-lbl vol-down mono">VOL −</span>
         <button type="button" class="mp3-side prev" aria-label="이전 곡">◀◀</button>
         <button type="button" class="mp3-side next" aria-label="다음 곡">▶▶</button>
         <button type="button" class="mp3-center" aria-label="재생"></button>

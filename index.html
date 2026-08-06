@@ -29,7 +29,11 @@
 
       <div class="view-toggle" id="view-toggle" role="group" aria-label="시대 필터">
         <button data-era="original" class="vt-btn" aria-pressed="false">원곡</button>
-        <button data-era="both" class="vt-btn" aria-pressed="false">양쪽</button>
+        <!-- 글자 대신 ⇄ — 이미 이 앱이 '양쪽'을 뜻할 때 쓰는 기호다
+             (연도/가수를 `1981 ⇄ 2015` 로 잇는 그 기호). 새 표식을 만들지 않았다.
+             기호만 남으므로 이름은 aria-label 로 남긴다. -->
+        <button data-era="both" class="vt-btn vt-both" aria-pressed="false"
+                aria-label="양쪽" title="양쪽">⇄</button>
         <button data-era="remake" class="vt-btn active" aria-pressed="true">리메이크</button>
       </div>
 

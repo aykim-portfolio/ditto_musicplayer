@@ -382,7 +382,7 @@ html, body {
   color: var(--color-text-on-card);
   opacity: .55;
   font-family: var(--font-label);
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   padding: 6px 14px;
   border-radius: var(--radius-ctl);
@@ -391,6 +391,15 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+/* 기호는 글자보다 작아 보인다 — 두 글자짜리 이웃(원곡/리메이크)과 시각적 크기를
+   맞추려면 한 단계 키워야 한다. 폭도 고정해서 버튼 혼자 좁아 보이지 않게 한다.
+   em 은 쓰지 않는다 — min-width 의 em 은 자기 font-size 기준이라
+   테마마다 버튼 폭이 따라 흔들린다. */
+.vt-btn.vt-both {
+  font-size: 17px;
+  line-height: 1;
+  min-width: 54px;
 }
 .vt-btn.active {
   background: var(--color-accent);
@@ -1259,8 +1268,11 @@ html, body {
 [data-theme="retro"] .vt-btn {
   color: var(--color-text-primary);
   opacity: .5;
-  font-size: 10px;
+  font-size: 13px;
 }
+/* 이 선택자가 .vt-btn.vt-both 와 특이도가 같고 뒤에 있어서, 다시 안 적으면
+   레트로에서만 기호가 본문 크기로 주저앉는다. */
+[data-theme="retro"] .vt-btn.vt-both { font-size: 16px; }
 [data-theme="retro"] .vt-btn.active {
   background: var(--color-accent);
   color: #fff;
@@ -1978,11 +1990,14 @@ html, body {
   opacity: .65;
   pointer-events: none;
 }
-.mp3-lbl.menu { top: 14px; }
-.mp3-lbl.vol { bottom: 14px; }
+/* 위아래는 볼륨 한 쌍이다. 원래 위가 MENU 였는데, 휠은 메뉴를 열지 않으므로
+   있지도 않은 기능을 각인해 둔 셈이었다. 위아래를 볼륨 +/− 로 통일하면
+   각인이 서로 짝을 이뤄 축(위=크게, 아래=작게)으로 읽힌다. */
+.mp3-lbl.vol-up { top: 14px; }
+.mp3-lbl.vol-down { bottom: 14px; }
 
 /* 좌우는 실제로 동작한다 — 연도를 한 칸씩 옮긴다.
-   MENU·VOL 은 실물의 각인이라 남겨두되 장식이다. */
+   VOL +/− 는 실물의 각인이라 남겨두되 장식이다. */
 .mp3-side {
   position: absolute;
   top: 50%;
@@ -2037,9 +2052,10 @@ html, body {
   background: none;          /* LCD 바탕을 그대로 쓴다 */
   border: 0;
   /* TUNER 의 스테이션 높이에 맞춘 값이다. 두 레이아웃은 같은 기기라
-     tweak 으로 넘길 때 몸체가 들썩이면 안 된다 — TUNER 쪽 글자나 아트를
-     건드리면 이 숫자도 같이 맞춰야 한다. 열 곡이 딱 들어가는 높이이기도 하다. */
-  max-height: 226px;
+     tweak 으로 넘길 때 몸체가 들썩이면 안 된다. 이 화면의 글자·창틀이든
+     TUNER 쪽 글자·아트든 건드리면 이 숫자도 같이 맞춰야 한다.
+     현재 맞춘 기준: 기기 높이 TUNER 503.33px / MP3AMP 503.58px. */
+  max-height: 220px;
   padding: 3px 0 2px;
   scrollbar-width: none;
 }
@@ -2047,8 +2063,14 @@ html, body {
 /* 전면 스킨(.wa-row 10px)보다 크게 읽힌다. 저기는 90년대 창을 실제 크기로
    재현하는 게 목적이지만, 여기는 LCD 안에 든 목록이라 읽히는 게 먼저다.
    .mp3-amp 로 감싸서 전면 스킨 쪽은 건드리지 않는다. */
-.mp3-amp .wa-row { font-size: 13px; line-height: 1.55; }
-.mp3-amp .wa-idx { flex: 0 0 20px; }   /* 커진 글자에서 '10.' 이 안 눌리게 */
+.mp3-amp .wa-row { font-size: 15px; line-height: 1.5; }
+.mp3-amp .wa-idx { flex: 0 0 24px; }   /* 커진 글자에서 '10.' 이 안 눌리게 */
+/* 창틀 글자도 같이 올린다. 전면 스킨의 6.5~9px 은 90년대 창을 실제 크기로
+   재현한 값이라 LCD 안에서는 그냥 안 읽힌다. */
+.mp3-amp .ma-title { height: 16px; }
+.mp3-amp .ma-title .wa-title-text { font-size: 10px; }
+.mp3-amp .ma-foot .wa-pf { font-size: 8px; }
+.mp3-amp .ma-foot .wa-pl-total { font-size: 11px; }
 
 .mp3-amp .ma-foot {
   margin: 0 -2px;
