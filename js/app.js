@@ -114,7 +114,8 @@
       // 하드웨어 레퍼런스 2종 — tweak 버튼으로 돌려본다.
       // RACK(EP-133 패드)·DIAL(부채꼴 휠)은 노출에서 뺐다. 렌더러와 CSS 는 남아 있으니
       // 여기 배열에 이름만 되돌리면 다시 살아난다.
-      layouts: ['tuner', 'mp3amp', 'winamp'],
+      // 맨 앞이 기본값이다 (applyEra 가 layouts[0] 로 연다)
+      layouts: ['mp3amp', 'tuner', 'winamp'],
       years: (d) => `${d.original.year}`,
       sub:   (d) => d.original.artist,
       art:   (p) => p.original.artwork || p.remake.artwork,
