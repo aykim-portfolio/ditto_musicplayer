@@ -714,8 +714,11 @@
       b.classList.toggle('active', on);
       b.setAttribute('aria-pressed', String(on));
     });
-    // 시대마다 마지막에 골라둔 레이아웃으로 돌아간다
-    layoutMode = layoutByEra[next];
+    /* 시대를 고르면 그 시대의 기본 레이아웃(layouts[0])으로 연다.
+       예전에는 '마지막에 고른 것'을 기억했는데, tweak 으로 한 번 바꾸면 그 시대는
+       계속 그걸로 열려서 기본값이 없는 것과 같았다 —
+       원곡을 눌렀는데 WINAMP 이 나오는 식. 기본값은 layouts[0] 하나로 정한다. */
+    layoutMode = ERA[next].layouts[0];
     applyLayout();
     if (activeScreen === 'library') renderLibrary();
   }
@@ -740,9 +743,9 @@
     twin: 'rows-2',
   };
   const ALL_LAYOUTS = Object.keys(LAYOUT_LABEL);
-  // 시대별로 마지막에 고른 레이아웃을 기억한다
-  const layoutByEra = { original: 'tuner', both: 'twin', remake: 'carousel' };
-  let layoutMode = layoutByEra[eraFilter];
+  /* 각 시대의 기본 레이아웃은 ERA[…].layouts[0] 하나로 정한다.
+     기본값을 두 군데 두면 반드시 어긋난다 — 실제로 그래서 원곡의 기본이 무시됐다. */
+  let layoutMode = ERA[eraFilter].layouts[0];
 
   const listEl = $('#pair-list');
   const dotsEl = $('#carousel-dots');
@@ -771,7 +774,7 @@
   $('#btn-layout').addEventListener('click', () => {
     const set = ERA[eraFilter].layouts;
     layoutMode = set[(set.indexOf(layoutMode) + 1) % set.length];
-    layoutByEra[eraFilter] = layoutMode;
+    // 기억해두지 않는다 — 시대를 다시 고르면 기본값으로 돌아간다
     applyLayout();
     toast(`레이아웃 · ${LAYOUT_LABEL[layoutMode]}`, 1200);
   });
