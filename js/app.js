@@ -69,6 +69,14 @@
   );
   $('#btn-back').addEventListener('click', () => showScreen('home'));
 
+  /* iOS 오디오 잠금 해제 — 첫 탭 한 번에만 걸린다.
+     이 핸들러 안에서는 await 를 쓰면 안 된다. 제스처와 같은 tick 을 벗어나는 순간
+     iOS 가 사용자 조작으로 안 쳐주고, 그러면 해제 자체가 무의미해진다.
+     capture 로 받는 이유: 다른 핸들러가 stopPropagation 을 걸어도 여기까지는 온다. */
+  ['pointerdown', 'touchend'].forEach((evt) =>
+    document.addEventListener(evt, () => DittoPlayer.unlockAudio(), { once: true, capture: true })
+  );
+
   /* ---------- iTunes 메타 매칭 (PoC 쌍 → 런타임 트랙) ----------
 
      예전에는 홈 화면을 한 번 그릴 때마다 iTunes 로 20번 나갔다(10쌍 × 원곡+리메이크).
@@ -184,16 +192,63 @@
      레이아웃마다 마크업이 달라서 렌더러를 나눠 둔다.
      grid/list/carousel 은 공용 카드, 나머지는 전용 렌더러. */
 
-  /** 아트워크는 iTunes 매칭이 끝나는 대로 끼워 넣는다 */
+  /* ---------- 조회 큐 ----------
+     카탈로그에 없는 쌍만 여기로 온다. 그래도 한꺼번에 몰아 보내지 않는다 —
+     예전에 20건을 46ms 에 쏟아부어 Apple 한도에 걸린 게 모바일이 깨진 원인이었다.
+     동시 3건으로 묶어두면 같은 20건도 한도 아래에서 흘러간다.
+     검색 화면처럼 카탈로그가 없는 자리에서도 이 제한이 그대로 걸린다. */
+  const RESOLVE_CONCURRENCY = 3;
+  const resolveQueue = [];
+  let resolveActive = 0;
+
+  function pumpResolveQueue() {
+    while (resolveActive < RESOLVE_CONCURRENCY && resolveQueue.length) {
+      const job = resolveQueue.shift();
+      resolveActive++;
+      job().finally(() => { resolveActive--; pumpResolveQueue(); });
+    }
+  }
+  function queueResolve(def) {
+    return new Promise((resolve, reject) => {
+      resolveQueue.push(() => resolvePair(def).then(resolve, reject));
+      pumpResolveQueue();
+    });
+  }
+
+  /* 화면에 없는 카드는 조회하지 않는다. 열 장을 다 그려놓고 시작하면
+     스크롤로 한 번도 안 내려간 카드까지 네트워크를 쓴다.
+     카탈로그에 있는 쌍은 관찰자를 거치지 않고 그 자리에서 칠한다 —
+     기다릴 이유가 없고, 첫 페인트에 이미 그림이 있어야 한다. */
+  const artObserver = ('IntersectionObserver' in window)
+    ? new IntersectionObserver((entries, obs) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          obs.unobserve(e.target);
+          e.target._loadArt?.();
+        });
+      }, { rootMargin: '200px' })   // 화면에 들어오기 조금 전에 미리
+    : null;
+
+  /** 아트워크를 끼워 넣는다. 카탈로그에 있으면 즉시, 없으면 보일 때 조회해서. */
   function lazyArt(container, def, pick, key) {
-    resolvePair(def).then((pair) => {
+    const el = container.querySelector(`[data-art="${key || def.id}"]`);
+    if (!el) return;
+
+    const paint = (pair) => {
       const art = pick(pair);
-      const el = container.querySelector(`[data-art="${key || def.id}"]`);
-      if (el && art) {
-        el.classList.remove('skeleton');
-        el.style.backgroundImage = `url('${art}')`;
-      }
-    }).catch(() => {});
+      if (!art) return;
+      el.classList.remove('skeleton');
+      el.style.backgroundImage = `url('${art}')`;
+    };
+
+    if (window.DITTO_CATALOG?.[def.id]) {
+      resolvePair(def).then(paint).catch(() => {});   // 카탈로그 경로는 네트워크를 안 탄다
+      return;
+    }
+
+    el._loadArt = () => { queueResolve(def).then(paint).catch(() => {}); };
+    if (artObserver) artObserver.observe(el);
+    else el._loadArt();
   }
 
   const pad2 = (n) => String(n).padStart(2, '0');

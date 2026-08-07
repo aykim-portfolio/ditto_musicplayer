@@ -6,13 +6,35 @@
    소스: 'preview' (iTunes 30초) | 'youtube' (전체 곡)
    ============================================================ */
 
+/* 무음 WAV 한 조각. iOS 잠금 해제용으로만 쓴다 — 아래 unlock() 참조. */
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+
 /* ---------- iTunes 미리듣기 엔진 (HTMLAudio) ---------- */
 class PreviewEngine {
   constructor() {
     this.audio = new Audio();
     this.audio.preload = 'auto';
     this.onEnded = null;
+    this._unlocked = false;
     this.audio.addEventListener('ended', () => this.onEnded?.());
+  }
+
+  /* iOS 는 '사용자 제스처 안에서 한 번이라도 재생된 적 있는' 오디오 요소에만
+     이후 프로그램 재생을 허용한다. 이 요소들은 앱이 뜰 때 만들어지므로
+     그 조건을 못 채운다 — 그래서 사용자가 첫 탭을 하는 순간, 그 제스처 안에서
+     무음을 한 번 재생해 요소를 열어둔다. 소리도 안 나고 화면도 안 바뀐다.
+
+     실패해도 조용히 넘어간다. 안 되면 지금과 같아질 뿐이지 더 나빠지지 않는다. */
+  unlock() {
+    if (this._unlocked) return;
+    this._unlocked = true;
+    if (this.audio.getAttribute('src')) return;   // 이미 곡이 물려 있으면 건드리지 않는다
+    this.audio.src = SILENT_WAV;
+    const done = () => { this.audio.pause(); this.audio.removeAttribute('src'); };
+    try {
+      const p = this.audio.play();
+      if (p && p.then) p.then(done, done); else done();
+    } catch { done(); }
   }
 
   /** url 을 seekSec 지점에 재생 가능 상태로 준비 (버퍼링 락) */
@@ -332,9 +354,15 @@ window.DittoPlayer = (() => {
   }
   const nudgeVolume = (dir) => setMasterVolume(masterVol + dir * VOL_STEP);
 
+  /* 첫 사용자 제스처에서 불린다. 반드시 제스처와 같은 tick 이어야 효과가 있다 —
+     await 를 하나라도 끼우면 iOS 가 제스처로 안 쳐준다. */
+  function unlockAudio() {
+    Object.values(engines.preview).forEach((e) => e.unlock?.());
+  }
+
   return {
     on, loadPair, play, pause, toggle, seekRatio, shuttle, stop, setSource,
-    setMasterVolume, nudgeVolume,
+    setMasterVolume, nudgeVolume, unlockAudio,
     get volume() { return masterVol; },
     get state() { return state; },
   };
