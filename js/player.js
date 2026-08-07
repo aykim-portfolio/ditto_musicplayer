@@ -147,6 +147,33 @@ window.DittoPlayer = (() => {
   let masterVol = 1;
   const applyVol = (engine, ratio = 1) => engine.setVolume(ratio * masterVol);
 
+  /* ---------- 시대 간 위치 대응 ----------
+     iTunes 미리듣기는 30초 '발췌' 인데, 애플이 원곡과 리메이크에서 각각 다른
+     지점을 잘라낸다. 그래서 두 발췌의 '같은 12.3초' 는 음악적으로 무관하다 —
+     가사가 되돌아가거나 엉뚱한 데로 튀던 원인이다. (길이는 20개 전부 30초라
+     길이 정규화로는 아무것도 해결되지 않는다. 실측으로 확인했다.)
+
+     js/align.js 가 그 어긋남을 초 단위로 담는다. 규약은 하나다:
+         리메이크_시각 = 원곡_시각 + offset
+     신뢰도가 낮거나 데이터가 없는 쌍은 손대지 않는다 — 어설픈 보정은
+     아무 보정도 안 하느니만 못하다. */
+  const ALIGN_MIN_CONFIDENCE = 0.45;
+  function alignOffset(pairId) {
+    const a = window.DITTO_ALIGN?.[pairId];
+    if (!a || typeof a.offset !== 'number') return 0;
+    if ((a.confidence ?? 0) < ALIGN_MIN_CONFIDENCE) return 0;
+    return a.offset;
+  }
+  function mapTime(fromMode, toMode, t) {
+    if (fromMode === toMode) return t;
+    const off = alignOffset(state.pair?.id);
+    if (!off) return t;
+    const mapped = toMode === 'remake' ? t + off : t - off;
+    // 발췌 밖으로 나가면 의미가 없다. 끝에서 0.5초는 남겨 뚝 끊기지 않게.
+    const dur = otherEngine(toMode).getDuration() || 30;
+    return Math.max(0, Math.min(mapped, Math.max(0, dur - 0.5)));
+  }
+
   const handlers = {
     onModeChange: null,   // (mode) — 테마/UI 전환
     onTick: null,         // (cur, dur)
@@ -307,7 +334,17 @@ window.DittoPlayer = (() => {
 
     try {
       // ② 새 음원을 같은 시간대에 버퍼링 완료 상태로 준비
-      const toEngine = await prepareEngine(toMode, t);
+      const toEngine = await prepareEngine(toMode, mapTime(state.mode, toMode, t));
+
+      /* ②-b 재동기화.
+         t 는 준비를 시작하기 '전' 에 찍은 값이다. 버퍼링에 걸린 시간만큼 옛 곡은
+         계속 흘렀는데 새 곡은 옛 지점에 서 있다 — 딱 그만큼 이미 들은 구간을
+         다시 듣게 된다(데스크톱 ~94ms, 모바일은 수백 ms~수 초).
+         페이드를 시작하기 직전에 지금 시각을 다시 읽어 간극을 메운다.
+         버퍼 근처로의 짧은 이동만 하도록 임계값을 둔다 — 매번 seek 하면
+         다시 버퍼링이 걸려 오히려 끊긴다. */
+      const drift = fromEngine.getCurrentTime() - t;
+      if (drift > 0.12) toEngine.seek(mapTime(state.mode, toMode, t + drift));
 
       // ③ 크로스페이드
       applyVol(toEngine, 0);
@@ -342,7 +379,8 @@ window.DittoPlayer = (() => {
       fromEngine.pause();
       const engine = engines.preview[toMode];
       applyVol(engine, 1);
-      const started = await engine.playFrom(url, seekSec);
+      // 대체 경로에서도 지점 대응은 똑같이 적용한다
+      const started = await engine.playFrom(url, mapTime(state.mode, toMode, seekSec));
 
       /* 재생이 막혔더라도(자동재생 거부 등) 시대 이동은 성사시킨다.
          이동이 본체고 재생 상태는 부수적이다 — 여기서 되돌리면 옛 음원은 이미
@@ -362,13 +400,20 @@ window.DittoPlayer = (() => {
     }
   }
 
+  /* 등가전력(equal-power) 크로스페이드.
+
+     선형으로 섞으면(1-p 와 p) 서로 무관한 두 신호의 합성 전력이 중간에서
+     √((1-p)²+p²) = 0.707 로 떨어진다 — 체감 음량이 약 3dB 꺼지면서
+     이음새가 '구멍' 으로 들린다. 정렬이 맞아도 어색하게 느껴지던 이유다.
+     cos/sin 곡선은 (cos²+sin²)=1 이라 합성 전력이 내내 일정하다. */
   function crossfade(outE, inE, ms, fadeIn) {
     return new Promise((resolve) => {
       const start = performance.now();
       const step = (now) => {
         const p = Math.min(1, (now - start) / ms);
-        applyVol(outE, 1 - p);
-        if (fadeIn) applyVol(inE, p);
+        const a = p * Math.PI / 2;
+        applyVol(outE, Math.cos(a));
+        if (fadeIn) applyVol(inE, Math.sin(a));
         else applyVol(inE, 1);
         if (p < 1) requestAnimationFrame(step);
         else resolve();

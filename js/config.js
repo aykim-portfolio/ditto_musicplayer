@@ -16,8 +16,12 @@ window.DITTO_CONFIG = {
   // YouTube Data API v3
   YT_SEARCH_ENDPOINT: 'https://www.googleapis.com/youtube/v3/search',
 
-  // 크로스페이드 길이 (ms) — PRD: 전환 버퍼링 목표 0.8초 이하
-  CROSSFADE_MS: 800,
+  /* 크로스페이드 길이 (ms).
+     원래 800 이었다(PRD 의 전환 버퍼링 목표 0.8초에서 따온 값). 그런데 그건
+     '얼마나 빨리 넘어가나' 의 수치지 '얼마나 자연스러운가' 의 수치가 아니다.
+     원곡과 리메이크는 편곡·템포·보컬이 달라 지점이 맞아도 이음새가 남는데,
+     짧은 페이드는 그걸 '컷' 으로 노출시킨다. 1.2초면 '블렌드' 로 읽힌다. */
+  CROSSFADE_MS: 1200,
 
   // 음원 버퍼링 대기 한도 (ms).
   // 미디어 요소는 네트워크가 막히면 canplay 도 error 도 안 내보내고

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>ditto — 미리듣기 정렬 분석기</title>
+<style>
+  body { font-family: ui-monospace, monospace; padding: 24px; line-height: 1.6; max-width: 900px; }
+  pre { background: #f4f4f2; padding: 12px; overflow-x: auto; white-space: pre-wrap; }
+  .ok { color: #1d7a4c; } .weak { color: #b45309; }
+</style>
+</head>
+<body>
+<h1>미리듣기 정렬 분석기</h1>
+<p>
+  iTunes 미리듣기는 30초 <b>발췌</b>인데 원곡과 리메이크의 발췌 지점이 다르다.
+  두 발췌의 크로마(음높이 분포)를 비교해 <b>가장 잘 겹치는 시간차</b>를 찾는다.
+  결과를 <code>js/align.js</code> 에 붙여넣으면 셔틀이 그만큼 보정해 넘어간다.
+</p>
+<p>규약: <code>리메이크_시각 = 원곡_시각 + offset</code></p>
+<p id="status">준비 중…</p>
+<pre id="out"></pre>
+
+<script src="../js/catalog.js"></script>
+<script>
+/* ---------- FFT (radix-2, in-place) ---------- */
+function fft(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len;
+    const wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let cr = 1, ci = 0;
+      for (let k = 0; k < len / 2; k++) {
+        const ur = re[i + k], ui = im[i + k];
+        const vr = re[i + k + len / 2] * cr - im[i + k + len / 2] * ci;
+        const vi = re[i + k + len / 2] * ci + im[i + k + len / 2] * cr;
+        re[i + k] = ur + vr; im[i + k] = ui + vi;
+        re[i + k + len / 2] = ur - vr; im[i + k + len / 2] = ui - vi;
+        const ncr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = ncr;
+      }
+    }
+  }
+}
+
+const SR = 11025, N = 4096, HOP = 1024;
+
+/* ---------- 크로마그램 ----------
+   프레임마다 12음계 에너지 분포를 낸다. 편곡·악기가 달라도 화성 진행은
+   비교적 보존되므로, 원곡↔리메이크처럼 '다른 녹음' 을 견줄 때 파형보다 낫다. */
+function chroma(buf) {
+  const win = new Float32Array(N);
+  for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (N - 1)); // Hann
+  const frames = [];
+  for (let s = 0; s + N <= buf.length; s += HOP) {
+    const re = new Float32Array(N), im = new Float32Array(N);
+    for (let i = 0; i < N; i++) re[i] = buf[s + i] * win[i];
+    fft(re, im);
+    const pc = new Float32Array(12);
+    for (let k = 2; k < N / 2; k++) {
+      const f = k * SR / N;
+      if (f < 80 || f > 2000) continue;          // 저역 잡음·고역 배음 제외
+      const mag = Math.hypot(re[k], im[k]);
+      const idx = Math.round(69 + 12 * Math.log2(f / 440)) % 12;
+      pc[(idx + 12) % 12] += mag;
+    }
+    let norm = 0; for (let i = 0; i < 12; i++) norm += pc[i] * pc[i];
+    norm = Math.sqrt(norm) || 1;
+    for (let i = 0; i < 12; i++) pc[i] /= norm;   // 프레임 정규화 → 음량 영향 제거
+    frames.push(pc);
+  }
+  return frames;
+}
+
+/* ---------- 최적 시간차 탐색 ----------
+   조옮김(리메이크가 다른 키)까지 고려해 12가지 회전을 모두 시험한다.
+   템포까지 다르면 단일 오프셋으로는 안 맞는데, 그 경우 점수가 낮게 나와
+   자동으로 '보정 안 함' 으로 떨어진다. */
+function bestLag(A, B) {
+  /* 탐색 범위를 ±10초로 묶는다.
+     30초 발췌에서 ±24초 같은 답은 겹치는 구간이 5초뿐이라, 우연히 닮은
+     한 조각만으로 뽑힌 값이다. 처음엔 범위를 열어뒀더니 실제로 그런 값들이
+     나왔다 — 넓게 찾는 게 아니라 '말이 되는 범위에서만' 찾아야 한다. */
+  const MAX_LAG = Math.min(Math.floor(10 * SR / HOP), Math.min(A.length, B.length) - 20);
+  const MIN_OVERLAP = Math.floor(Math.min(A.length, B.length) * 0.6);
+  /* 조옮김도 0, ±1, ±2 반음까지만. 리메이크가 5~7반음씩 옮겨가는 일은 드물고,
+     그런 답이 나왔다면 화성이 맞아서가 아니라 잡음이 맞은 것이다. */
+  const TRANSPOSES = [0, 1, 2, 10, 11];
+  const scores = [];
+  let best = { score: -1, lag: 0, transpose: 0 };
+  for (let lag = -MAX_LAG; lag <= MAX_LAG; lag++) {
+    let bestHere = -1, bestT = 0;
+    for (const t of TRANSPOSES) {
+      let sum = 0, cnt = 0;
+      for (let i = 0; i < A.length; i++) {
+        const j = i + lag;
+        if (j < 0 || j >= B.length) continue;
+        const a = A[i], b = B[j];
+        let d = 0;
+        for (let c = 0; c < 12; c++) d += a[c] * b[(c + t) % 12];
+        sum += d; cnt++;
+      }
+      if (cnt < MIN_OVERLAP) continue;            // 겹침이 60% 미만이면 비교 자체가 무의미
+      const s = sum / cnt;
+      if (s > bestHere) { bestHere = s; bestT = t; }
+    }
+    if (bestHere < 0) continue;
+    scores.push(bestHere);
+    if (bestHere > best.score) best = { score: bestHere, lag, transpose: bestT };
+  }
+  /* 신뢰도: 봉우리가 '나머지 대비' 얼마나 솟았는가.
+     그냥 유사도가 높은 것만으로는 부족하다 — 어디를 맞춰도 비슷하면 의미가 없다. */
+  scores.sort((a, b) => a - b);
+  const median = scores[Math.floor(scores.length / 2)] ?? 0;
+  const confidence = Math.max(0, Math.min(1, (best.score - median) / Math.max(1e-6, 1 - median)));
+  return { ...best, median, confidence };
+}
+
+async function loadMono(url) {
+  const ac = new OfflineAudioContext(1, 1, SR);
+  const buf = await fetch(url).then(r => r.arrayBuffer());
+  const decoded = await ac.decodeAudioData(buf);
+  // 리샘플 + 모노 다운믹스
+  const off = new OfflineAudioContext(1, Math.ceil(decoded.duration * SR), SR);
+  const src = off.createBufferSource(); src.buffer = decoded;
+  src.connect(off.destination); src.start();
+  const out = await off.startRendering();
+  return out.getChannelData(0);
+}
+
+(async () => {
+  const status = document.getElementById('status');
+  const out = document.getElementById('out');
+  const result = {};
+  const ids = Object.keys(window.DITTO_CATALOG || {});
+  if (!ids.length) { status.textContent = 'catalog.js 를 못 읽었습니다.'; return; }
+
+  for (const id of ids) {
+    const p = window.DITTO_CATALOG[id];
+    if (!p.original?.previewUrl || !p.remake?.previewUrl) continue;
+    status.textContent = `${id} 분석 중… (${ids.indexOf(id) + 1}/${ids.length})`;
+    try {
+      const [ao, ar] = await Promise.all([loadMono(p.original.previewUrl), loadMono(p.remake.previewUrl)]);
+      const r = bestLag(chroma(ao), chroma(ar));
+      const offset = +(r.lag * HOP / SR).toFixed(2);   // 프레임 → 초
+      result[id] = { offset, confidence: +r.confidence.toFixed(3), transpose: r.transpose };
+      out.textContent += `${id}  offset ${String(offset).padStart(7)}s  conf ${r.confidence.toFixed(3)}  transpose ${r.transpose}\n`;
+    } catch (e) {
+      out.textContent += `${id}  실패: ${e.message}\n`;
+    }
+  }
+
+  const lines = Object.entries(result)
+    .map(([id, v]) => `  '${id}': { offset: ${v.offset}, confidence: ${v.confidence}, transpose: ${v.transpose} },`)
+    .join('\n');
+  out.textContent += `\n\n===== js/align.js 에 넣을 내용 =====\n\nwindow.DITTO_ALIGN = {\n${lines}\n};\n`;
+  window.__ALIGN_RESULT = result;
+  status.innerHTML = '<b>완료.</b> 아래 블록을 <code>js/align.js</code> 에 붙여넣으세요.';
+})();
+</script>
+</body>
+</html>
