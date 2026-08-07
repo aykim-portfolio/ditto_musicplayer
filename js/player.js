@@ -30,7 +30,13 @@ class PreviewEngine {
     this._unlocked = true;
     if (this.audio.getAttribute('src')) return;   // 이미 곡이 물려 있으면 건드리지 않는다
     this.audio.src = SILENT_WAV;
-    const done = () => { this.audio.pause(); this.audio.removeAttribute('src'); };
+    /* 뒷정리는 비동기로 온다. 그 사이 사용자가 곡을 눌러 진짜 src 가 물렸을 수 있으니
+       '아직 무음이 걸려 있을 때만' 걷는다 — 안 그러면 재생 중인 곡의 src 를 지운다. */
+    const done = () => {
+      if (this.audio.getAttribute('src') !== SILENT_WAV) return;
+      this.audio.pause();
+      this.audio.removeAttribute('src');
+    };
     try {
       const p = this.audio.play();
       if (p && p.then) p.then(done, done); else done();
@@ -41,25 +47,45 @@ class PreviewEngine {
   async prepare(url, seekSec = 0) {
     if (this.audio.src !== url) {
       this.audio.src = url;
-      await new Promise((resolve, reject) => {
-        // 네트워크가 막히면 미디어 요소는 canplay 도 error 도 안 낸다.
-        // (networkState=LOADING 인 채 stalled 만 반복) 이때를 대비한 한도.
-        const timer = setTimeout(() => {
-          cleanup();
-          this.audio.removeAttribute('src'); // 다음 시도가 다시 로드하도록
-          reject(new Error('LOAD_TIMEOUT'));
-        }, DITTO_CONFIG.LOAD_TIMEOUT_MS);
-        const ok = () => { cleanup(); resolve(); };
-        const fail = () => { cleanup(); reject(new Error('오디오 로드 실패')); };
-        const cleanup = () => {
-          clearTimeout(timer);
-          this.audio.removeEventListener('canplay', ok);
-          this.audio.removeEventListener('error', fail);
-        };
-        this.audio.addEventListener('canplay', ok);
-        this.audio.addEventListener('error', fail);
-        this.audio.load();
-      });
+      /* 아래 '무음 킥' 이 소리로 새지 않게 먼저 죽여둔다. 준비가 끝나면 되돌린다. */
+      const prevVolume = this.audio.volume;
+      this.audio.volume = 0;
+      try {
+        await new Promise((resolve, reject) => {
+          // 네트워크가 막히면 미디어 요소는 canplay 도 error 도 안 낸다.
+          // (networkState=LOADING 인 채 stalled 만 반복) 이때를 대비한 한도.
+          const timer = setTimeout(() => {
+            cleanup();
+            this.audio.removeAttribute('src'); // 다음 시도가 다시 로드하도록
+            reject(new Error('LOAD_TIMEOUT'));
+          }, DITTO_CONFIG.LOAD_TIMEOUT_MS);
+          const ok = () => { cleanup(); resolve(); };
+          const fail = () => { cleanup(); reject(new Error('오디오 로드 실패')); };
+          const cleanup = () => {
+            clearTimeout(timer);
+            this.audio.removeEventListener('canplay', ok);
+            this.audio.removeEventListener('error', fail);
+          };
+          this.audio.addEventListener('canplay', ok);
+          this.audio.addEventListener('error', fail);
+          this.audio.load();
+
+          /* ★ 모바일에서 셔틀이 죽던 자리.
+             iOS 는 사용자 제스처로 재생된 적 없는 오디오 요소를 load() 만으로는
+             실제로 받아오지 않는다(preload 를 무시한다). 그러면 canplay 가 영영
+             안 오고, 8초 뒤 LOAD_TIMEOUT 으로 셔틀이 실패한다 —
+             화면에는 글리치만 지나가고 시대는 안 넘어간다.
+             재생을 한 번 걸어 버퍼링을 강제로 시작시킨다. 볼륨이 0 이라 안 들린다.
+             잠금이 안 풀린 요소라면 여기서 거부되는데, 그때는 원래대로
+             canplay 를 기다리다 타임아웃 → 셔틀의 대체 경로로 넘어간다. */
+          const kick = this.audio.play();
+          if (kick && kick.catch) kick.catch(() => {});
+        });
+      } finally {
+        // 킥으로 시작된 재생을 되돌린다. 실제 재생은 호출부가 결정한다.
+        this.audio.pause();
+        this.audio.volume = prevVolume;
+      }
     }
     const dur = this.getDuration();
     this.audio.currentTime = dur ? Math.min(seekSec, Math.max(0, dur - 0.5)) : seekSec;
@@ -70,6 +96,25 @@ class PreviewEngine {
      화면에는 일시정지 버튼이 떠 있고 소리는 안 나는 상태가 된다. */
   play() { return this.audio.play().then(() => true).catch(() => false); }
   pause() { this.audio.pause(); }
+  /* canplay 를 기다리지 않고 곧장 재생한다.
+     크로스페이드 준비가 실패했을 때의 최후 수단이다 — 이음새는 거칠지만
+     시대 이동 자체는 성사시킨다. 이 앱에서 시대 이동은 부가 기능이 아니라 본체라,
+     '매끄럽게 못 하면 아예 안 한다' 가 제일 나쁜 선택이다. */
+  playFrom(url, seekSec = 0) {
+    if (this.audio.getAttribute('src') !== url) {
+      this.audio.src = url;
+      this.audio.load();
+    }
+    const seek = () => {
+      const dur = this.getDuration();
+      try { this.audio.currentTime = dur ? Math.min(seekSec, Math.max(0, dur - 0.5)) : seekSec; }
+      catch { /* 아직 못 옮기면 처음부터 나온다 — 안 넘어가는 것보다 낫다 */ }
+    };
+    if (this.audio.readyState >= 1) seek();
+    else this.audio.addEventListener('loadedmetadata', seek, { once: true });
+    return this.play();
+  }
+
   seek(sec) { this.audio.currentTime = sec; }
   getCurrentTime() { return this.audio.currentTime || 0; }
   getDuration() { return this.audio.duration || 0; }
@@ -275,10 +320,45 @@ window.DittoPlayer = (() => {
       handlers.onTrackLoaded?.(state.pair, toMode);
       return true;
     } catch (err) {
+      /* 크로스페이드 준비가 실패해도 시대 이동을 포기하지 않는다.
+         이 앱에서 시대 이동은 부가 기능이 아니라 존재 이유라, 이음새가 거칠지언정
+         넘어가는 쪽이 '글리치만 지나가고 제자리' 보다 훨씬 낫다.
+         모바일에서 버퍼링 락이 걸릴 때 실제로 이 경로를 탄다. */
+      if (await hardSwitch(toMode, t, wasPlaying, fromEngine)) return true;
       handleSourceError(err);
       return false;
     } finally {
       state.shuttling = false;
+    }
+  }
+
+  /** 크로스페이드 없이 곧장 갈아탄다. 성공하면 true. */
+  async function hardSwitch(toMode, seekSec, wasPlaying, fromEngine) {
+    // YouTube 엔진은 준비 절차가 달라 이 우회로를 쓰지 않는다
+    if (useYoutube()) return false;
+    const url = state.pair?.[toMode]?.previewUrl;
+    if (!url) return false;
+    try {
+      fromEngine.pause();
+      const engine = engines.preview[toMode];
+      applyVol(engine, 1);
+      const started = await engine.playFrom(url, seekSec);
+
+      /* 재생이 막혔더라도(자동재생 거부 등) 시대 이동은 성사시킨다.
+         이동이 본체고 재생 상태는 부수적이다 — 여기서 되돌리면 옛 음원은 이미
+         멈춘 뒤라 '아무것도 안 나오는 제자리' 라는 최악의 상태가 된다.
+         새 시대의 정지 화면을 주면 사용자가 재생을 누르면 된다. */
+      const nowPlaying = wasPlaying && started !== false;
+      if (!nowPlaying) engine.pause();
+
+      state.playing = nowPlaying;
+      state.mode = toMode;
+      handlers.onModeChange?.(toMode);
+      handlers.onTrackLoaded?.(state.pair, toMode);
+      handlers.onStateChange?.(state.playing);
+      return true;
+    } catch {
+      return false;
     }
   }
 
