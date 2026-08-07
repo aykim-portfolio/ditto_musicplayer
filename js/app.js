@@ -1062,6 +1062,13 @@
     };
     el._rail = st;
 
+    let nativeScrollTimeout;
+
+    el.addEventListener('touchstart', (e) => {
+      if (!isRail(el)) return;
+      drivingRail = el;
+    }, { passive: true });
+
     el.addEventListener('scroll', () => {
       if (st.syncPending) return;
       st.syncPending = requestAnimationFrame(() => { st.syncPending = 0; railSync(el); });
@@ -1073,6 +1080,14 @@
         st.syncPending = 0;
         railSync(el);
       }, 200);
+
+      // 네이티브 스크롤(모바일 터치) 종료 감지 및 안착 처리
+      clearTimeout(nativeScrollTimeout);
+      nativeScrollTimeout = setTimeout(() => {
+        if (drivingRail === el) {
+          if (st.onSettle) st.onSettle(railNearest(el));
+        }
+      }, 150);
     }, { passive: true });
 
     el.addEventListener('wheel', (e) => {
@@ -1268,11 +1283,12 @@
       const other = st.twin();
       if (other && other.children.length) {
         railStopGlide(other);
-        const to = railSnapPos(other, active);
+        const to = el.scrollLeft; // 픽셀 단위 완벽 동기화 (기존의 이산적인 snap 점프 제거)
         if (Math.abs(other.scrollLeft - to) > 0.5) {
           other.style.scrollBehavior = 'auto';
           other.scrollLeft = to;
-          other.style.scrollBehavior = '';
+          // Safari 등에서 실시간 동기화가 부드러운 스크롤로 밀리는 것을 막기 위해
+          // 당장 복구하지 않고 onSettle 이나 네이티브 스크롤 종료 시 복구하도록 둡니다.
         }
       }
     }
