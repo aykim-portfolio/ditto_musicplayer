@@ -166,12 +166,20 @@ window.DittoPlayer = (() => {
   }
   function mapTime(fromMode, toMode, t) {
     if (fromMode === toMode) return t;
-    const off = alignOffset(state.pair?.id);
-    if (!off) return t;
-    const mapped = toMode === 'remake' ? t + off : t - off;
-    // 발췌 밖으로 나가면 의미가 없다. 끝에서 0.5초는 남겨 뚝 끊기지 않게.
-    const dur = otherEngine(toMode).getDuration() || 30;
-    return Math.max(0, Math.min(mapped, Math.max(0, dur - 0.5)));
+
+    const fromDur = otherEngine(fromMode).getDuration() || 30;
+    const toDur   = otherEngine(toMode).getDuration() || 30;
+    const off     = alignOffset(state.pair?.id);
+
+    // 수동 보정된 쌍: offset 적용
+    if (off) {
+      const mapped = toMode === 'remake' ? t + off : t - off;
+      return Math.max(0, Math.min(mapped, Math.max(0, toDur - 0.5)));
+    }
+
+    // 보정 없는 쌍: 비율 매핑 — 곡 길이가 다를 때 구조적으로 대응
+    const ratio = fromDur > 0 ? t / fromDur : 0;
+    return Math.max(0, Math.min(ratio * toDur, Math.max(0, toDur - 0.5)));
   }
 
   const handlers = {
