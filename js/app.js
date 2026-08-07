@@ -1084,6 +1084,10 @@
       // 네이티브 스크롤(모바일 터치) 종료 감지 및 안착 처리
       clearTimeout(nativeScrollTimeout);
       nativeScrollTimeout = setTimeout(() => {
+        // 어떤 이유로든 스크롤이 멈췄다면 이 레일의 CSS 스냅/스무스 속성을 무조건 정상화
+        el.style.scrollSnapType = '';
+        el.style.scrollBehavior = '';
+
         if (drivingRail === el) {
           if (st.onSettle) st.onSettle(railNearest(el));
         }
@@ -1210,9 +1214,20 @@
     if (!st) return;
     clearTimeout(st.glideFallback);
     st.glideFallback = 0;
-    if (!st.glideRaf) return;
-    cancelAnimationFrame(st.glideRaf);
-    st.glideRaf = 0;
+    if (st.glideRaf) {
+      cancelAnimationFrame(st.glideRaf);
+      st.glideRaf = 0;
+    }
+    
+    // 모바일 환경 등에서 네이티브 관성 스크롤(momentum) 중일 때 JS가 개입하면 서로 충돌함
+    // overflow를 잠깐 hidden으로 바꾸어 네이티브 관성 엔진을 강제 정지시키는 트릭
+    if (getComputedStyle(el).overflowX !== 'hidden') {
+      const oldX = el.style.overflowX;
+      el.style.overflowX = 'hidden';
+      void el.offsetHeight; // force reflow
+      el.style.overflowX = oldX || '';
+    }
+
     el.style.scrollSnapType = '';
     el.style.scrollBehavior = '';
   }
@@ -1230,9 +1245,11 @@
       if (!silent && st && st.onSettle) st.onSettle(idx);
     };
     if (Math.abs(dist) < 1 || reduceMotion.matches) {
+      el.style.scrollSnapType = 'none';
       el.style.scrollBehavior = 'auto';
       el.scrollLeft = to;
       el.style.scrollBehavior = '';
+      el.style.scrollSnapType = '';
       done();
       return;
     }
@@ -1285,6 +1302,7 @@
         railStopGlide(other);
         const to = el.scrollLeft; // 픽셀 단위 완벽 동기화 (기존의 이산적인 snap 점프 제거)
         if (Math.abs(other.scrollLeft - to) > 0.5) {
+          other.style.scrollSnapType = 'none'; // CSS 스냅 개입 완전 차단
           other.style.scrollBehavior = 'auto';
           other.scrollLeft = to;
           // Safari 등에서 실시간 동기화가 부드러운 스크롤로 밀리는 것을 막기 위해
