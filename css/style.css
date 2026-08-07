@@ -280,7 +280,12 @@ html, body {
 @media (max-width: 480px) {
   :root {
     --canvas-w: 100vw;
-    --canvas-h: 100dvh;
+    --canvas-h: 100vh;
+  }
+  @supports (height: 100dvh) {
+    :root {
+      --canvas-h: 100dvh;
+    }
   }
   .phone {
     max-height: none;
@@ -335,8 +340,10 @@ html, body {
 
 /* ===== Screens ===== */
 .screen {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 0 var(--pad-screen) calc(var(--nav-h) + 24px);
   display: flex;
   flex-direction: column;
@@ -349,10 +356,13 @@ html, body {
 .screen > * { flex-shrink: 0; }
 
 /* 플레이어는 내용이 화면보다 짧다 — 아래에만 큰 공백이 남던 걸 위아래로 나눈다.
-   safe 를 쓰는 이유: 내용이 넘칠 때 center 는 위쪽을 스크롤로 닿을 수 없게 잘라낸다. */
-#screen-player { justify-content: center; }
-@supports (justify-content: safe center) {
-  #screen-player { justify-content: safe center; }
+   margin: auto 방식은 iOS Safari 에서 overflow-y: auto 스크롤을 먹는 버그가 있어,
+   ::before / ::after 로 남는 공간을 나눠 가져가게 한다 — 내용이 넘치면 이 둘은
+   flex-basis: 0 이라 높이 0 으로 무너져서 스크롤에 영향을 주지 않는다. */
+#screen-player::before,
+#screen-player::after {
+  content: "";
+  flex: 1 0 0px;
 }
 
 /* ===== Discovery Badge ===== */
@@ -2473,6 +2483,25 @@ html, body {
      ★ 맞출 때는 두 레이아웃을 반드시 '한 번의 실행 안에서' 재야 한다.
        실행을 나눠 재면 값이 몇 px 씩 흔들려서 엉뚱한 수를 쫓게 된다. */
   .mp3-amp .ma-list { max-height: 196px; }
+
+  /* ---- 플레이어 화면 ----
+     짧은 화면에서 셔틀 콘솔(이 앱의 핵심 조작부)이 하단 내비에 잘렸다.
+     화면은 스크롤 가능한 상태였지만, 핵심 컨트롤을 스크롤해야 닿게 두는 건
+     답이 아니다 — 홈의 기기와 같은 방식으로 '애초에 들어가게' 줄인다.
+     375×667 기준 스택 661px → 가용 551px 이라 약 110px 을 회수한다. */
+  #screen-player { gap: 6px; }
+  #album-art { width: 130px; height: 130px; }
+  /* 신호 세기 각인은 장식이다. 자리가 없으면 이게 먼저 빠진다. */
+  .signal-caption { display: none; }
+}
+
+/* 더 짧은 화면(360×640 등)은 위 한 단계로도 26px 모자란다.
+   자켓을 한 번 더 줄여 셔틀 콘솔을 확보한다 — 자켓은 작아져도 보이지만
+   조작부는 잘리면 못 쓴다. */
+@media (max-height: 660px) {
+  #album-art { width: 104px; height: 104px; }
+  .song-info { gap: 2px; }
+  .source-tag { display: none; }
 }
 [data-skin="winamp"] .icon-btn:active { background: linear-gradient(180deg, #363C3A, #5B635F); }
 

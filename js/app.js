@@ -1655,8 +1655,7 @@
      브라우저는 사용자 제스처 없는 자동재생을 막는다. 막히면 재생 버튼이 뜬
      정지 상태로 보이는데, 이게 정직한 표시다 — 소리는 안 나는데 일시정지
      아이콘만 떠 있는 상태보다 낫다. (player.js 의 play() 참조) */
-  const REPLY_PAIRS = DITTO_PAIRS.filter((p) => /응답하라/.test(p.remake && p.remake.album || ''));
-  const bootFrom = REPLY_PAIRS.length ? REPLY_PAIRS : DITTO_PAIRS;
+  const bootPair = DITTO_PAIRS.find((p) => p.id === 'pair-07') || DITTO_PAIRS[0];
   showScreen('home');   // 뒤로가기로 돌아올 화면을 먼저 세워둔다
-  openPair(bootFrom[Math.floor(Math.random() * bootFrom.length)]);
+  openPair(bootPair);
 })();
