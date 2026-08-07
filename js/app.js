@@ -229,6 +229,24 @@
       }, { rootMargin: '200px' })   // 화면에 들어오기 조금 전에 미리
     : null;
 
+  /* ---------- 아트워크 해상도 ----------
+     iTunes 는 URL 끝의 크기 토큰만 바꾸면 같은 그림을 다른 해상도로 준다
+     (실측: 200→21KB · 300→38.5KB · 400→60.5KB · 600→111.5KB).
+
+     카탈로그에는 600 으로 박아뒀는데, 그건 슬롯이 큰 화면에서만 맞는 값이다.
+     TUNER 자켓은 108~132px 이라 3배 화면에서도 400 이면 충분하고,
+     DPR 1~2 화면에서는 목록 전체가 300~400 으로 떨어진다.
+     반대로 3배 화면의 194px 슬롯은 582px 이 필요해 600 이 정확한 값이다 —
+     그래서 일괄로 낮추지 않고 슬롯 크기 × DPR 로 고른다. 화질은 그대로 두고
+     받는 바이트만 줄이는 자리다. */
+  const ART_STEPS = [200, 300, 400, 600];
+  function artAtSize(url, cssPx) {
+    if (!url || !cssPx) return url;
+    const need = cssPx * Math.min(window.devicePixelRatio || 1, 3);
+    const pick = ART_STEPS.find((s) => s >= need) || 600;
+    return url.replace(/\/\d+x\d+bb\.jpg$/, `/${pick}x${pick}bb.jpg`);
+  }
+
   /** 아트워크를 끼워 넣는다. 카탈로그에 있으면 즉시, 없으면 보일 때 조회해서. */
   function lazyArt(container, def, pick, key) {
     const el = container.querySelector(`[data-art="${key || def.id}"]`);
@@ -238,7 +256,7 @@
       const art = pick(pair);
       if (!art) return;
       el.classList.remove('skeleton');
-      el.style.backgroundImage = `url('${art}')`;
+      el.style.backgroundImage = `url('${artAtSize(art, el.getBoundingClientRect().width)}')`;
     };
 
     if (window.DITTO_CATALOG?.[def.id]) {
@@ -1331,7 +1349,10 @@
     $('#mode-chip').textContent = isOriginal ? 'ORIGINAL' : 'REMAKE';
     $('#song-title').textContent = `${meta.artist} 〈${pair.title}〉`;
     $('#song-subtitle').textContent = meta.album || `${meta.year}`;
-    $('#album-art').style.backgroundImage = meta.artwork ? `url('${meta.artwork}')` : 'none';
+    const artEl = $('#album-art');
+    artEl.style.backgroundImage = meta.artwork
+      ? `url('${artAtSize(meta.artwork, artEl.getBoundingClientRect().width)}')`
+      : 'none';
 
     /* ---- 셔틀 콘솔 ---- */
     $('#year-original').textContent = pair.original?.year ?? '—';
