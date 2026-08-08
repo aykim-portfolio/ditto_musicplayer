@@ -5,8 +5,8 @@
 
 | 파일명 | 폰트 | 쓰이는 곳 | 받는 곳 |
 |---|---|---|---|
-| `GanaChocolate.woff2` | 가나초콜릿체 | RETRO 포인트 (히어로 제목, 섹션 제목) | [눈누](https://noonnu.cc) |
-| `DungGeunMo.woff2` | 둥근모꼴+ Fixedsys | RETRO 강조 (현재 Galmuri11로 대체 중) | [눈누](https://noonnu.cc) |
+| ~~`GanaChocolate.woff2`~~ | 가나초콜릿체 | RETRO 포인트 (CDN woff 로 전환 완료, local() 우선) | [눈누](https://noonnu.cc) |
+| ~~`DungGeunMo.woff2`~~ | 둥근모꼴+ Fixedsys | RETRO 디스플레이 (CDN woff 로 전환 완료) | [눈누](https://noonnu.cc) |
 
 ## 넣는 방법
 

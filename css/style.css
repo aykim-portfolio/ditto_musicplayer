@@ -34,10 +34,17 @@
   src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2") format("woff2");
 }
 
-/* Galmuri11 — RETRO(원곡) 테마의 강조용 비트맵 서체.
-   원래 지정은 "둥근모꼴+ Fixedsys" 였으나 공개 CDN 배포본이 없어 같은 계열의
-   한글 픽셀 폰트로 대체했다. 실제 파일을 확보하면 아래 두 @font-face 의 src 와
-   --font-display 의 첫 패밀리명만 바꾸면 된다. (OFL-1.1) */
+/* 둥근모꼴+ Fixedsys — RETRO(원곡) 테마의 메인 디스플레이 서체.
+   눈누 배포본(jsdelivr)에서 woff 로 받는다. 퍼블릭 도메인. */
+@font-face {
+  font-family: "DungGeunMo";
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff") format("woff");
+}
+
+/* Galmuri11 — 둥근모꼴의 폴백 겸 --font-point 후보.
+   둥근모꼴이 로드되지 않거나 Bold 가 필요한 자리에서 받쳐 준다. (OFL-1.1) */
 @font-face {
   font-family: "Galmuri11";
   font-weight: 400;
@@ -51,15 +58,14 @@
   src: url("https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/Galmuri11-Bold.woff2") format("woff2");
 }
 
-/* 가나초콜릿체 — RETRO 포인트 서체. 공개 CDN 배포본이 없어 시스템 설치본을 먼저 찾는다.
-   설치돼 있지 않으면 --font-point 의 다음 후보(Galmuri11)로 조용히 넘어간다.
-   셀프호스트하려면 fonts/README.md 를 따라 파일을 넣고 아래 url() 줄의 주석을 풀 것. */
+/* 가나초콜릿체 — RETRO 포인트 서체. 눈누 배포본(jsdelivr)에서 woff 로 받는다.
+   시스템 설치본이 있으면 우선 사용하고, 없으면 CDN 에서 내려받는다. */
 @font-face {
   font-family: "GanaChocolate";
   font-weight: 400;
   font-display: swap;
-  src: local("가나초콜릿"), local("가나초콜릿체"), local("Gana Chocolate"), local("GanaChocolate");
-  /* src: local("가나초콜릿"), url("../fonts/GanaChocolate.woff2") format("woff2"); */
+  src: local("가나초콜릿"), local("가나초콜릿체"), local("Gana Chocolate"), local("GanaChocolate"),
+       url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ghanachoco.woff") format("woff");
 }
 
 :root {
@@ -142,10 +148,10 @@
    덕분에 팔레트는 하나로 묶이면서 시대 전환이 색으로도 읽힌다.
    시대의 나머지 신호는 픽셀 서체 · 각진 모서리 · 그레인이 맡는다. */
 [data-theme="retro"] {
-  --font-display: "Galmuri11", "IBM Plex Sans KR", monospace;
+  --font-display: "DungGeunMo", "Galmuri11", "IBM Plex Sans KR", monospace;
   --font-body: "Open Sans", "IBM Plex Sans KR", -apple-system, sans-serif;
   /* 포인트 서체는 화면당 제목 하나에만 — 남발하면 포인트가 아니게 된다 */
-  --font-point: "GanaChocolate", "Galmuri11", "IBM Plex Sans KR", sans-serif;
+  --font-point: "GanaChocolate", "DungGeunMo", "Galmuri11", "IBM Plex Sans KR", sans-serif;
 
   /* 오렌지는 :root 값 하나로 통일했다 — 여기서 다시 정의하지 않는다. */
   --color-bg-primary: var(--surface-past);      /* 어두운 초록 바디 (MODERN 민트의 반대 끝) */
@@ -180,7 +186,7 @@
    같이 놓이는 자리(양쪽 보기의 원곡 줄)에서 쓴다 — 팔레트는 하나로 두고
    시대는 형태로만 말한다는 규칙을 그대로 옮긴 것. */
 .era-past {
-  --font-display: "Galmuri11", "IBM Plex Sans KR", monospace;
+  --font-display: "DungGeunMo", "Galmuri11", "IBM Plex Sans KR", monospace;
   --font-label: var(--font-mono);
   --radius-card: 6px;
   --radius-art: 4px;
@@ -1717,7 +1723,12 @@ html, body {
    주황으로 바꾸면 인광과 보색이라 더 심하게 부딪힌다. 인광 계열 안에서 반전시킨다. */
 .wa-row.on { background: #2A6A4E; color: #EAF7F0; }
 .wa-idx { flex: 0 0 16px; text-align: right; }
-.wa-name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.wa-name {
+  flex: 1; overflow: hidden; text-overflow: ellipsis;
+  font-family: "DungGeunMo", "Galmuri11", var(--font-mono);
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+}
 .wa-dur { flex: 0 0 auto; }
 
 .wa-pl-foot {
