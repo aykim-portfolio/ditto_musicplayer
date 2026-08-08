@@ -2102,7 +2102,10 @@ html, body {
 /* 전면 스킨(.wa-row 10px)보다 크게 읽힌다. 저기는 90년대 창을 실제 크기로
    재현하는 게 목적이지만, 여기는 LCD 안에 든 목록이라 읽히는 게 먼저다.
    .mp3-amp 로 감싸서 전면 스킨 쪽은 건드리지 않는다. */
-.mp3-amp .wa-row { font-size: 16px; line-height: 1.5; }
+.mp3-amp .wa-row { font-size: 14px; line-height: 1.5; }
+/* 곡 제목과 아티스트는 한 칸(.wa-name)에 같이 들어간다 — 둘 다 둥근모꼴로 찍힌다.
+   번호(.wa-idx)와 연도(.wa-dur)는 모노로 남긴다: 자릿수가 세로로 맞아야
+   목록이 표처럼 읽히는데, 픽셀 서체는 그 정렬을 보장하지 않는다. */
 .mp3-amp .wa-name {
   font-family: "DungGeunMo", "Galmuri11", var(--font-mono);
   -webkit-font-smoothing: none;
@@ -2275,6 +2278,22 @@ html, body {
   box-shadow: 0 3px 10px rgba(0,0,0,.18);
 }
 .tw-card.is-active .tw-art { box-shadow: 0 10px 22px rgba(0,0,0,.3); }
+
+/* 과거는 테두리로, 현재는 그림자로 — 물성 자체를 갈라놓는다.
+   그림자는 '떠 있는 종이' 라는 신호고(현재의 카드 UI 문법), 하드 보더는
+   인쇄물이나 필름 가장자리처럼 '평면에 박혀 있다' 는 신호다.
+   크기와 여백이 같아도 이 둘은 서로 다른 물건으로 읽힌다 —
+   반경 하나로는 안 되던 대비가 여기서 끝난다.
+   box-sizing 이 border-box 라 1px 을 더해도 196px 은 그대로다
+   (레일의 가운데 정렬 여백이 이 숫자에 묶여 있어 흔들리면 안 된다). */
+.era-past .tw-art {
+  box-shadow: none;
+  border: 1px solid color-mix(in srgb, var(--color-text-primary) 45%, transparent);
+}
+.era-past .tw-card.is-active .tw-art {
+  box-shadow: none;
+  border-color: var(--color-text-primary);
+}
 .tw-title {
   margin-top: 7px;
   font-size: 14px;
