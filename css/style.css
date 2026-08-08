@@ -188,9 +188,13 @@
 .era-past {
   --font-display: "DungGeunMo", "Galmuri11", "IBM Plex Sans KR", monospace;
   --font-label: var(--font-mono);
-  --radius-card: 6px;
-  --radius-art: 4px;
-  --radius-art-lg: 6px;
+  --radius-card: 0;
+  /* 아트워크 프레임은 완전한 직각이다. 4px 은 리메이크의 10px 옆에 놓였을 때
+     '조금 덜 둥근 것' 으로 읽혀서, 두 시대가 형태로 갈린다는 게 안 보였다.
+     0 과 10 이면 각진 것과 둥근 것이 되어 한눈에 갈린다 — 이 화면의 값은
+     두 시대를 같이 보여주는 것이므로 차이는 클수록 좋다. */
+  --radius-art: 0;
+  --radius-art-lg: 0;
   --radius-ctl: 3px;
   --radius-field: 2px;
   --radius-round: 4px;
@@ -2099,6 +2103,11 @@ html, body {
    재현하는 게 목적이지만, 여기는 LCD 안에 든 목록이라 읽히는 게 먼저다.
    .mp3-amp 로 감싸서 전면 스킨 쪽은 건드리지 않는다. */
 .mp3-amp .wa-row { font-size: 16px; line-height: 1.5; }
+.mp3-amp .wa-name {
+  font-family: "DungGeunMo", "Galmuri11", var(--font-mono);
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+}
 .mp3-amp .wa-idx { flex: 0 0 24px; }   /* 커진 글자에서 '10.' 이 안 눌리게 */
 /* 창틀 글자도 같이 올린다. 전면 스킨의 6.5~9px 은 90년대 창을 실제 크기로
    재현한 값이라 LCD 안에서는 그냥 안 읽힌다. */
