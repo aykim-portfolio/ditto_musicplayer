@@ -327,7 +327,7 @@ html, body {
   border: none; border-radius: var(--radius-round);
   background: transparent;
   color: var(--color-text-primary);
-  font-size: 19px;
+  font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -372,7 +372,7 @@ html, body {
   justify-content: space-between;
 }
 .hero-caption {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-text-primary);
   opacity: .75;
@@ -408,7 +408,7 @@ html, body {
    em 은 쓰지 않는다 — min-width 의 em 은 자기 font-size 기준이라
    테마마다 버튼 폭이 따라 흔들린다. */
 .vt-btn.vt-both {
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1;
   min-width: 54px;
 }
@@ -420,7 +420,7 @@ html, body {
 
 /* ===== Pair list ===== */
 .section-title {
-  font-size: 17px;
+  font-size: 18px;
   color: var(--color-text-primary);
   margin-top: 4px;
 }
@@ -488,12 +488,12 @@ html, body {
   background: rgba(0,0,0,.65);
   color: var(--color-text-on-card-dim);
   font-family: var(--font-label);
-  font-size: 9px;
+  font-size: 10px;
   padding: 2px 6px;
   border-radius: var(--radius-ctl);
 }
-.pair-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
-.pair-sub { font-size: 11px; opacity: .65; line-height: 1.4; }
+.pair-title { font-size: 14px; font-weight: 700; line-height: 1.3; }
+.pair-sub { font-size: 12px; opacity: .65; line-height: 1.4; }
 .pair-remove {
   margin-left: auto;
   border: none; background: transparent;
@@ -688,7 +688,7 @@ html, body {
   font-family: var(--font-display);
 }
 .search-hint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-primary);
   opacity: .6;
   line-height: 1.5;
@@ -712,13 +712,13 @@ html, body {
 }
 .result-art { width: 48px; height: 48px; border-radius: var(--radius-art); background-size: cover; flex: 0 0 48px; }
 .result-meta { min-width: 0; }
-.result-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.result-sub { font-size: 11px; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.result-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.result-sub { font-size: 12px; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .result-year {
   margin-left: auto;
   font-family: var(--font-label);
   font-variant-numeric: tabular-nums;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-on-card-dim);
 }
 
@@ -726,7 +726,7 @@ html, body {
 .player-badge-row { margin-top: 4px; }
 .mode-chip {
   font-family: var(--font-label);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: .08em;
   padding: 5px 12px;
@@ -783,19 +783,19 @@ html, body {
 .tape-line { width: 46px; height: 3px; background: var(--hw-line); border-radius: 2px; }
 .cassette-label {
   font-family: var(--font-mono);   /* 카세트 각인 — RETRO 전용이라 모노 고정 */
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: .18em;
   color: var(--color-text-on-card-dim);
 }
 
 .song-info { text-align: center; }
 .song-title {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-text-primary);
   margin-bottom: 4px;
 }
-.song-subtitle { font-size: 13px; color: var(--color-text-primary); opacity: .65; }
+.song-subtitle { font-size: 14px; color: var(--color-text-primary); opacity: .65; }
 .source-tag {
   margin-top: 8px;
   display: inline-block;
@@ -838,7 +838,7 @@ html, body {
   border: none;
 }
 .time-row { display: flex; justify-content: space-between; margin-top: 6px; }
-.time { font-size: 11px; color: var(--color-text-primary); opacity: .7; }
+.time { font-size: 12px; color: var(--color-text-primary); opacity: .7; }
 
 /* ===== Controls ===== */
 .controls {
@@ -861,13 +861,13 @@ html, body {
   width: 40px; height: 40px;
   background: var(--color-card-bg);
   color: var(--color-text-on-card);
-  font-size: 15px;
+  font-size: 16px;
 }
 .ctrl-btn.play {
   width: 56px; height: 56px;
   background: var(--color-accent);
   color: #fff;
-  font-size: 21px;
+  font-size: 22px;
   box-shadow: 0 6px 18px var(--color-accent-glow);
 }
 
@@ -887,13 +887,13 @@ html, body {
 }
 .sc-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .sc-title {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: .24em;
   opacity: .45;
 }
 /* 두 곡 사이의 거리 — 이 앱이 파는 값 그 자체라 숫자로 못 박아 둔다 */
 .sc-gap {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: .06em;
   color: var(--color-accent);
@@ -932,7 +932,7 @@ html, body {
 
 .sc-era { font-size: 8px; letter-spacing: .16em; opacity: .65; }
 .sc-year {
-  font-size: 23px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: .01em;
@@ -1129,7 +1129,7 @@ html, body {
   animation: glitch-jitter .1s steps(2) infinite;
 }
 .glitch-sub {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: .1em;
   color: var(--gl);
   opacity: .85;
@@ -1175,13 +1175,13 @@ html, body {
   gap: 10px;
   color: var(--color-text-on-card);
 }
-.modal-card h3 { font-size: 17px; margin-bottom: 4px; }
+.modal-card h3 { font-size: 18px; margin-bottom: 4px; }
 .field-label { font-size: 12px; font-weight: 600; margin-top: 6px; }
 .modal-card input, .modal-card select {
   border: 1px solid rgba(255,255,255,.16);
   border-radius: var(--radius-field);
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: 14px;
   font-family: var(--font-body);
   background: var(--color-card-bg-2);
   color: var(--color-text-on-card);
@@ -1190,13 +1190,13 @@ html, body {
 .modal-card input:focus-visible,
 .modal-card select:focus-visible { border-color: var(--color-accent); }
 .modal-card input::placeholder { color: var(--color-text-on-card); opacity: .38; }
-.field-help { font-size: 11px; color: var(--color-text-on-card); opacity: .6; line-height: 1.5; }
+.field-help { font-size: 12px; color: var(--color-text-on-card); opacity: .6; line-height: 1.5; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
 .btn {
   border: none;
   border-radius: var(--radius-ctl);
   padding: 9px 18px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -1255,7 +1255,7 @@ html, body {
   letter-spacing: 0;
 }
 [data-theme="retro"] .logo { font-size: 20px; }
-[data-theme="retro"] .cc-title { font-size: 15px; }
+[data-theme="retro"] .cc-title { font-size: 16px; }
 [data-theme="retro"] .cc-year { font-size: 18px; }
 
 /* 포인트 서체는 딱 두 자리 — 화면마다 제목 하나씩만.
@@ -1281,7 +1281,7 @@ html, body {
 [data-theme="retro"] .vt-btn {
   color: var(--color-text-primary);
   opacity: .5;
-  font-size: 13px;
+  font-size: 14px;
 }
 /* 이 선택자가 .vt-btn.vt-both 와 특이도가 같고 뒤에 있어서, 다시 안 적으면
    레트로에서만 기호가 본문 크기로 주저앉는다. */
@@ -1297,7 +1297,7 @@ html, body {
 [data-theme="retro"] .hero-caption {
   letter-spacing: .2em;
   text-transform: uppercase;
-  font-size: 9px;
+  font-size: 10px;
   color: var(--color-text-muted);
   opacity: 1;
 }
@@ -1405,7 +1405,7 @@ html, body {
 }
 .rp-idx {
   position: absolute; top: 6px; right: 8px; z-index: 2;
-  font-size: 9px;
+  font-size: 10px;
   color: var(--color-text-on-card);
   opacity: .5;
 }
@@ -1413,7 +1413,7 @@ html, body {
   position: absolute; left: 8px; right: 8px; bottom: 7px; z-index: 2;
 }
 .rp-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--color-text-on-card);
   line-height: 1.25;
@@ -1486,7 +1486,7 @@ html, body {
 }
 .wa-title-btns {
   flex: 0 0 auto;
-  font-size: 7px;
+  font-size: 8px;
   letter-spacing: .12em;
   color: #A4ADAA;
 }
@@ -1516,7 +1516,7 @@ html, body {
 .wa-kbps { margin-top: 2px; opacity: .8; }
 
 .wa-clock { display: flex; align-items: flex-start; gap: 3px; }
-.wa-play-ico { color: var(--wa-phosphor); font-size: 9px; line-height: 1; margin-top: 4px; }
+.wa-play-ico { color: var(--wa-phosphor); font-size: 10px; line-height: 1; margin-top: 4px; }
 .wa-time-big {
   font-family: var(--font-mono);
   font-size: 26px;
@@ -1534,7 +1534,7 @@ html, body {
 .wa-marquee span {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   color: var(--wa-phosphor);
   animation: wa-scroll 13s linear infinite;
 }
@@ -1547,7 +1547,7 @@ html, body {
   align-items: center;
   gap: 4px;
   font-family: var(--font-mono);
-  font-size: 7px;
+  font-size: 8px;
   color: #2E8963;
 }
 .wa-num {
@@ -1591,7 +1591,7 @@ html, body {
 
 .wa-tog {
   font-family: var(--font-mono);
-  font-size: 7px;
+  font-size: 8px;
   letter-spacing: .06em;
   color: #8A918E;
   background: var(--wa-chrome-lo);
@@ -1660,7 +1660,7 @@ html, body {
   height: 74px;
   margin-right: 2px;
   font-family: var(--font-mono);
-  font-size: 5.5px;
+  font-size: 6px;
   color: var(--wa-phosphor);
   opacity: .75;
 }
@@ -1682,12 +1682,13 @@ html, body {
 }
 .wa-eq-hz {
   font-family: var(--font-mono);
-  font-size: 5.5px;
+  font-size: 6px;
   color: var(--wa-phosphor);
   opacity: .8;
   white-space: nowrap;
 }
-.wa-preamp .wa-eq-hz { font-size: 5px; }
+/* PREAMP 라벨은 예전에 5px 로 한 단계 더 작았는데, 짝수 통일에서 둘 다 6px 이 돼
+   구분이 사라졌다. 규칙만 남기면 거짓말이라 지운다. */
 
 /* ================= ③ 플레이리스트 ================= */
 .wa-pl-body {
@@ -1728,7 +1729,7 @@ html, body {
 }
 .wa-pf {
   font-family: var(--font-mono);
-  font-size: 6.5px;
+  font-size: 6px;
   line-height: 1.1;
   text-align: center;
   color: #AFB8B5;
@@ -1742,14 +1743,14 @@ html, body {
 .wa-pl-total {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   color: var(--wa-phosphor);
   background: var(--wa-lcd);
   border: 1px solid #000;
   padding: 2px 5px;
 }
 .wa-pl-mini {
-  font-size: 7px;
+  font-size: 8px;
   letter-spacing: .06em;
   color: #AFB8B5;
 }
@@ -1790,7 +1791,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: .1em;
   color: var(--color-text-on-card-dim);
 }
@@ -1853,7 +1854,7 @@ html, body {
 }
 .tn-station.is-active { opacity: 1; transform: scale(1); }
 .tn-freq {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-text-on-card);
   letter-spacing: .04em;
@@ -2086,14 +2087,14 @@ html, body {
 /* 전면 스킨(.wa-row 10px)보다 크게 읽힌다. 저기는 90년대 창을 실제 크기로
    재현하는 게 목적이지만, 여기는 LCD 안에 든 목록이라 읽히는 게 먼저다.
    .mp3-amp 로 감싸서 전면 스킨 쪽은 건드리지 않는다. */
-.mp3-amp .wa-row { font-size: 15px; line-height: 1.5; }
+.mp3-amp .wa-row { font-size: 16px; line-height: 1.5; }
 .mp3-amp .wa-idx { flex: 0 0 24px; }   /* 커진 글자에서 '10.' 이 안 눌리게 */
 /* 창틀 글자도 같이 올린다. 전면 스킨의 6.5~9px 은 90년대 창을 실제 크기로
    재현한 값이라 LCD 안에서는 그냥 안 읽힌다. */
 .mp3-amp .ma-title { height: 16px; }
 .mp3-amp .ma-title .wa-title-text { font-size: 10px; }
 .mp3-amp .ma-foot .wa-pf { font-size: 8px; }
-.mp3-amp .ma-foot .wa-pl-total { font-size: 11px; }
+.mp3-amp .ma-foot .wa-pl-total { font-size: 12px; }
 
 .mp3-amp .ma-foot {
   margin: 0 -2px;
@@ -2155,7 +2156,7 @@ html, body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .dl-sub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-primary);
   opacity: .55;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -2199,7 +2200,7 @@ html, body {
 }
 .tw-label {
   display: block;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: .2em;
   color: var(--color-text-primary);
   opacity: .5;
@@ -2256,14 +2257,14 @@ html, body {
 .tw-card.is-active .tw-art { box-shadow: 0 10px 22px rgba(0,0,0,.3); }
 .tw-title {
   margin-top: 7px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   font-family: var(--font-display);
   color: var(--color-text-primary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tw-sub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-primary);
   /* 다른 목록의 보조 텍스트보다 한 단계 진하다. 이 줄은 메시 그라디언트의
      가장 애매한 구간(약 40%)에 앉아서 .6 이면 바탕에 묻힌다. */
@@ -2411,7 +2412,7 @@ html, body {
 [data-skin="winamp"] .logo {
   z-index: 1;                            /* 줄무늬를 가리며 글자만 남는다 */
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: .2em;
   color: #DDE4E1;
@@ -2480,9 +2481,32 @@ html, body {
      짧은 화면에서 셔틀 콘솔(이 앱의 핵심 조작부)이 하단 내비에 잘렸다.
      화면은 스크롤 가능한 상태였지만, 핵심 컨트롤을 스크롤해야 닿게 두는 건
      답이 아니다 — 홈의 기기와 같은 방식으로 '애초에 들어가게' 줄인다.
-     375×667 기준 스택 661px → 가용 551px 이라 약 110px 을 회수한다. */
+     375×667 기준 스택 661px → 가용 551px 이라 약 110px 을 회수한다.
+
+     자켓이 130 → 110 인 이유: 폰트 크기를 전부 짝수로 통일하면서 이 화면의
+     글자들이 대체로 1px 씩 커졌다. RETRO 는 여유가 8px → 1px 로 줄었고,
+     MODERN 은 아예 -3px 로 넘어갔다 — 부제가 두 줄로 감기는 쌍
+     (`서인국, 정은지 〈All For You〉`)이 최악이고, 그 쌍은 짝수화 이전에도
+     여유가 0px 이었다. 1px 이나 0px 은 '안 잘림' 이 아니라 '아직 안 잘림' 이다.
+
+     네 안을 한 번의 실행 안에서 쟀다 (RETRO / MODERN 여유):
+       현재(자켓 122)          9 / -3
+       자켓 110               21 /  9   ← 채택
+       부제 12px              12 /  3
+       부제 12 + 제목 18      14 /  6
+       자켓 116 + 부제 12     18 /  9
+     부제를 12px 로 내리는 안은 짝수화 이전(13px)보다도 작아져 판독성이 거꾸로
+     간다. 23번의 원칙 그대로 자켓에서 회수한다 — 자켓은 작아져도 보이지만
+     조작부는 잘리면 못 쓴다. */
   #screen-player { gap: 6px; }
-  #album-art { width: 130px; height: 130px; }
+  #album-art { width: 110px; height: 110px; }
+
+  /* 자켓이 110 으로 내려오면서 RETRO 의 카세트 창(안쪽 합 120px)이 자켓 밖으로
+     삐져나왔다. 창은 자켓 위에 얹힌 장식이라 자켓을 따라 같이 줄인다.
+     릴 20 + 여백 6 + 테이프 32 + 여백 6 + 릴 20 + 패딩 16 + 테두리 2 = 102px. */
+  .cassette-window { gap: 6px; padding: 6px 8px; }
+  .tape-line { width: 32px; }
+  .reel { width: 20px; height: 20px; border-width: 2px; }
 }
 
 /* 더 짧은 화면(360×640 등)은 위 한 단계로도 26px 모자란다.
@@ -2501,7 +2525,7 @@ html, body {
 [data-skin="winamp"] .hero-caption,
 [data-skin="winamp"] .list-caption {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: .16em;
   opacity: 1;
 }
@@ -2559,7 +2583,7 @@ html, body {
 }
 [data-skin="winamp"] .nav-btn {
   color: #7E8582;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 /* 하단 내비는 스킨이 아니라 앱 크롬이다 — 활성색은 다른 화면과 같은 오렌지로 둔다 */
