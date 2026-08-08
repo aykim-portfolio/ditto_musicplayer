@@ -870,14 +870,6 @@ html, body {
   font-size: 21px;
   box-shadow: 0 6px 18px var(--color-accent-glow);
 }
-.signal-caption {
-  text-align: center;
-  font-size: 10px;
-  letter-spacing: .22em;
-  color: var(--color-text-primary);
-  opacity: .55;
-  margin-top: -6px;
-}
 
 /* ===== Time Shuttle Console =====
    플레이어에서 가장 큰 판이어야 한다. 예전엔 화면 맨 아래 6px 슬라이더 한 줄이라
@@ -2491,8 +2483,6 @@ html, body {
      375×667 기준 스택 661px → 가용 551px 이라 약 110px 을 회수한다. */
   #screen-player { gap: 6px; }
   #album-art { width: 130px; height: 130px; }
-  /* 신호 세기 각인은 장식이다. 자리가 없으면 이게 먼저 빠진다. */
-  .signal-caption { display: none; }
 }
 
 /* 더 짧은 화면(360×640 등)은 위 한 단계로도 26px 모자란다.

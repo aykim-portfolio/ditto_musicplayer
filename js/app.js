@@ -1542,7 +1542,6 @@
     onStateChange: (playing) => {
       $('#btn-play').innerHTML = iconSvg(playing ? 'pause' : 'play', 22);
       $('#album-card').classList.toggle('playing', playing);
-      $('#signal-bars').textContent = playing ? '▂▅▇▅' : '▁▁▁▁';
     },
     onError: (msg) => toast(msg, 3500),
     onEnded: () => {
