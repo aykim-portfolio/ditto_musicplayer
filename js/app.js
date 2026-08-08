@@ -1065,10 +1065,79 @@
 
     let nativeScrollTimeout;
 
+    /* ----- 모바일 추종 루프 -----
+       데스크톱은 반대편을 끌고 갈 길이 둘이다: 끄는 동안엔 pointermove 가 직접
+       scrollLeft 를 밀고, 손을 떼면 endDrag → railScrollTo → onSettle 이 옮긴다.
+       둘 다 'scroll' 이벤트가 없어도 돈다.
+
+       모바일엔 그 길이 없다. pointerdown 이 터치면 곧바로 빠져나가서(그래야 네이티브
+       스크롤이 산다) 실시간 추종도 안착도 전부 'scroll' 이벤트 하나에 매달린다.
+       그 하나가 늦거나 합쳐지면 반대편은 아무 데도 안 간다 — TWIN 이 모바일에서만
+       죽어 있던 이유다.
+
+       그래서 터치 동안에는 rAF 로 직접 따라붙인다. scroll 이벤트에 기대지 않고,
+       내 scrollLeft 가 더 안 움직일 때까지(관성 포함) 돌다가 스스로 안착시킨다. */
+    let followRaf = 0, followTimer = 0, followLast = -1, followIdleAt = 0;
+    let touching = false, followDone = true;
+
+    function followOther() {
+      if (!st.twin || drivingRail !== el) return;
+      const other = st.twin();
+      if (!other || !other.children.length) return;
+      if (Math.abs(other.scrollLeft - el.scrollLeft) <= 0.5) return;
+      other.style.scrollSnapType = 'none';   // CSS 스냅이 중간에 끼어들지 않게
+      other.style.scrollBehavior = 'auto';
+      other.scrollLeft = el.scrollLeft;
+    }
+
+    function followEnd() {
+      if (followDone) return;
+      followDone = true;
+      if (followRaf) { cancelAnimationFrame(followRaf); followRaf = 0; }
+      if (followTimer) { clearInterval(followTimer); followTimer = 0; }
+      followLast = -1;
+      el.style.scrollSnapType = '';
+      el.style.scrollBehavior = '';
+      const other = st.twin && st.twin();
+      if (other) { other.style.scrollSnapType = ''; other.style.scrollBehavior = ''; }
+      if (drivingRail === el && st.onSettle) st.onSettle(railNearest(el));
+    }
+
+    /** 한 프레임 분의 추종. 끝났으면 true 를 돌려준다. */
+    function followStep() {
+      if (followDone) return true;
+      const now = performance.now();
+      if (el.scrollLeft !== followLast) { followLast = el.scrollLeft; followIdleAt = now; }
+      followOther();
+      // 손이 붙어 있으면 계속, 떼었으면 관성이 멎을 때까지
+      if (touching || now - followIdleAt < TOUCH_IDLE_MS) return false;
+      followEnd();
+      return true;
+    }
+
+    function followTick() {
+      followRaf = 0;
+      if (followStep()) return;
+      followRaf = requestAnimationFrame(followTick);
+    }
+
     el.addEventListener('touchstart', (e) => {
       if (!isRail(el)) return;
       drivingRail = el;
+      touching = true;
+      followDone = false;
+      followLast = -1;
+      followIdleAt = performance.now();
+      if (!followRaf) followRaf = requestAnimationFrame(followTick);
+      /* 1279 번 줄과 같은 이유의 받침이다 — rAF 는 화면이 합성되지 않으면 아예 안 돈다.
+         그때도 반대편은 따라와야 하므로 타이머로 같은 걸음을 한 번 더 받친다.
+         rAF 가 정상이면 이 인터벌은 할 일이 없다(followStep 이 멱등이다). */
+      if (!followTimer) followTimer = setInterval(() => { if (followStep()) { clearInterval(followTimer); followTimer = 0; } }, 32);
     }, { passive: true });
+
+    const touchOff = () => { touching = false; };
+    el.addEventListener('touchend', touchOff, { passive: true });
+    el.addEventListener('touchcancel', touchOff, { passive: true });
 
     el.addEventListener('scroll', () => {
       if (st.syncPending) return;
